@@ -15,6 +15,7 @@ import 'package:path/path.dart' as Path;
 import 'dart:io';
 
 String heroUrl;
+String avataarUrl;
 
 void main() {
   runApp(MaterialApp(
@@ -26,11 +27,9 @@ void main() {
       // When navigating to the "/" route, build the FirstScreen widget.
       '/': (context) => FirstScreen(),
       '/register': (context) => RegisterScreen(),
-      '/addPhoto': (context) => AddPhotoScreen(),
       // When navigating to the "/second" route, build the SecondScreen widget.
       '/user': (context) => UserScreen(),
       '/privateChat': (context) => PrivateChat(),
-      '/pickImage': (context) => PickImage(),
     },
   ));
 }
@@ -53,132 +52,6 @@ class DetailScreen extends StatelessWidget {
         },
       ),
     );
-  }
-}
-
-class AddPhotoScreen extends StatefulWidget {
-  @override
-  _AddPhotoScreenState createState() => _AddPhotoScreenState();
-}
-
-class _AddPhotoScreenState extends State<AddPhotoScreen> {
-  File _image;
-  String _uploadedFileURL = '';
-  String currentUser = 'null';
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  @override
-  void initState() {
-    _checkUser();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-
-    return MaterialApp(
-      title: 'Welcome to Flutter',
-      home: Scaffold(
-        body: DecoratedBox(
-            position: DecorationPosition.background,
-            decoration: BoxDecoration(
-              color: Colors.black,
-              image: DecorationImage(
-                  image: AssetImage('Images/Login.jpg'), fit: BoxFit.cover),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                    height: 100,
-                    width: 100,
-                    child: _image != null ? Image.file(_image) : null),
-                Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: FloatingActionButton(
-                    heroTag: 'btn1',
-                    child: _image != null
-                        ? Icon(Icons.keyboard_arrow_right)
-                        : Icon(Icons.image),
-                    backgroundColor: Colors.green,
-                    elevation: 5,
-                    tooltip: 'Register',
-                    onPressed: () {
-                      if (_image == null) {
-                        chooseFile();
-                      } else {
-                        uploadPhoto();
-                      }
-                    },
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: FloatingActionButton(
-                    heroTag: 'btn2',
-                    child: _image != null ? Icon(Icons.cancel) : null,
-                    backgroundColor: Colors.red,
-                    elevation: 5,
-                    tooltip: 'Register',
-                    onPressed: () {
-                      _clearImage();
-                    },
-                  ),
-                ),
-              ],
-            )),
-      ),
-    );
-  }
-
-  void _checkUser() async {
-    FirebaseUser fbuser = await _auth.currentUser();
-
-    if (fbuser != null) {
-      setState(() {
-        currentUser = fbuser.email;
-      });
-    }
-  }
-
-  void _clearImage() async {
-    setState(() {
-      _image = null;
-      _uploadedFileURL = '';
-    });
-  }
-
-  Future chooseFile() async {
-    await ImagePicker.pickImage(
-            source: ImageSource.gallery,
-            maxHeight: 1080,
-            maxWidth: 1920,
-            imageQuality: 40)
-        .then((image) {
-      setState(() {
-        _image = image;
-      });
-    });
-  }
-
-  void uploadPhoto() async {
-    StorageReference storageReference =
-        FirebaseStorage.instance.ref().child(currentUser + '.jpg');
-    StorageUploadTask uploadTask = storageReference.putFile(_image);
-    await uploadTask.onComplete;
-    print('File Uploaded');
-    storageReference.getDownloadURL().then((fileURL) {
-      setState(() {
-        _uploadedFileURL = fileURL;
-      });
-    });
   }
 }
 
@@ -321,15 +194,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void uploadPhoto() async {
-    StorageReference storageReference =
-        FirebaseStorage.instance.ref().child(_userEmail + '.jpg');
+    StorageReference storageReference = FirebaseStorage.instance
+        .ref()
+        .child('userAvatars/${Path.basename(_image.path)}');
     StorageUploadTask uploadTask = storageReference.putFile(_image);
     await uploadTask.onComplete;
     print('File Uploaded');
     storageReference.getDownloadURL().then((fileURL) {
       setState(() {
         _uploadedFileURL = fileURL;
+        avataarUrl = fileURL;
       });
+      Firestore.instance.collection('users').document(_userEmail).setData(
+          {'photoUrl': avataarUrl, 'newMessage': 0, 'user': _userEmail});
     });
     Toast.show('the account has been created, you can log in now!', context,
         duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
@@ -444,9 +321,10 @@ class _FirstScreenState extends State<FirstScreen> {
                       children: <Widget>[
                         Container(
                           margin: EdgeInsets.only(right: 10),
-                          child: FloatingActionButton(
+                          child: FloatingActionButton.extended(
                             heroTag: 'btn1',
-                            child: Icon(Icons.add),
+                             icon: Icon(Icons.add),
+                            label: Text('register'),
                             backgroundColor: Colors.blue,
                             elevation: 5,
                             tooltip: 'register',
@@ -525,9 +403,10 @@ class _FirstScreenState extends State<FirstScreen> {
                     )
                   ],
                 ))),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: FloatingActionButton.extended(
           heroTag: 'btn2',
-          child: Icon(Icons.keyboard_arrow_right),
+          label: Text('log in'),
+          icon : Icon(Icons.keyboard_arrow_right),
           backgroundColor: Colors.green,
           elevation: 5,
           tooltip: 'Log in',
@@ -749,6 +628,7 @@ class _UserScreenState extends State<UserScreen> {
     );
 
     // show the dialog
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -851,9 +731,9 @@ class _UserScreenState extends State<UserScreen> {
                     margin: EdgeInsets.only(top: 48),
                     height: 160,
                     width: 160,
-                    child: _userAvatar != null
+                    child: avataarUrl != null
                         ? CircleAvatar(
-                            backgroundImage: NetworkImage(_userAvatar),
+                            backgroundImage: NetworkImage(avataarUrl),
                             radius: 90,
                           )
                         : CircleAvatar(
@@ -1222,9 +1102,9 @@ class _UserScreenState extends State<UserScreen> {
     // int colorRed = preferences.getInt('colorRed');
     //  int colorGreen = preferences.getInt('colorGreen');
 
-    final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
-    var downloadUrl = await ref.getDownloadURL();
-    String photoUrl = downloadUrl.toString();
+    //final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
+    // var downloadUrl = await ref.getDownloadURL();
+    //String photoUrl = downloadUrl.toString();
     DateTime now = DateTime.now();
     String dateUtc = now.toUtc().toString();
     String date = now.toString();
@@ -1237,7 +1117,8 @@ class _UserScreenState extends State<UserScreen> {
       // 'colorBlue': colorBlue,
       //  'colorRed': colorRed,
       //  'colorGreen': colorGreen,
-      'photoUrl': photoUrl,
+      'photoUrl': avataarUrl,
+      //'photoUrl': photoUrl,
       'downloadUrl': _uploadedFileURL
     });
     _clearImage();
@@ -1267,22 +1148,36 @@ class _UserScreenState extends State<UserScreen> {
 
     _saveDeviceToken();
 
-    final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
-    var downloadUrl = await ref.getDownloadURL();
-    String photoUrl = downloadUrl.toString();
-    setState(() {
-      _userAvatar = photoUrl;
+    //final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
+    //var downloadUrl = await ref.getDownloadURL();
+    //String photoUrl = downloadUrl.toString();
+    //setState(() {
+    //_userAvatar = photoUrl;
+    //});
+    Firestore.instance
+        .collection('users')
+        .document(currentUser)
+        .get()
+        .then((value) {
+      setState(() {
+        avataarUrl = value.data['photoUrl'].toString();
+      });
+      print(avataarUrl);
     });
+    /*
     new Timer(new Duration(milliseconds: 1000), () async {
       await databaseReference
           .collection('users')
           .document(currentUser)
           .setData({
         'user': currentUser,
-        'photoUrl': photoUrl,
+        'photoUrl': avataarUrl,
         'newMessage': 0,
       });
+
+
     });
+    */
   }
 
   _saveDeviceToken() async {
@@ -1375,35 +1270,57 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   _uploadAvatar() async {
-    StorageReference storageReference =
-        FirebaseStorage.instance.ref().child(currentUser + '.jpg');
+    StorageReference storageReference = FirebaseStorage.instance
+        .ref()
+        .child('userAvatars/${Path.basename(_image.path)}');
+
     StorageUploadTask uploadTask = storageReference.putFile(_image);
     await uploadTask.onComplete;
 
-    storageReference.getDownloadURL().then((fileURL) {});
-    setState(() {
-      _image = null;
-      _imageIcon = false;
-      _uploadedFileURL = '';
-      _uploading = false;
+    storageReference.getDownloadURL().then((fileURL) {
+      setState(() {
+        avataarUrl = fileURL;
+        _saveNewAvatartoDB();
+      });
     });
-    Toast.show('Profile picture changed', context,
-        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-    _removeBool();
+
+    //_removeBool();
   }
 
   void _deleteUser() async {
-    StorageReference storageReference =
-        FirebaseStorage.instance.ref().child(currentUser + '.jpg');
+    //StorageReference storageReference =
+    //   FirebaseStorage.instance.ref().child(currentUser + '.jpg');
 
-    storageReference.delete();
-    FirebaseUser user = await FirebaseAuth.instance.currentUser();
-    user.delete();
+    // storageReference.delete();
     await databaseReference.collection('users').document(currentUser).delete();
+    FirebaseUser user = await FirebaseAuth.instance.currentUser();
+    user.delete().whenComplete(() => _showToastAndClearPersistence());
+  }
 
-    Toast.show('Profile picture changed', context,
+  void _saveNewAvatartoDB() async {
+    await Firestore.instance
+        .collection('users')
+        .document(currentUser)
+        .setData({'photoUrl': avataarUrl, 'newMessage': 0, 'user': currentUser})
+        .whenComplete(() => setState(() {
+              _image = null;
+              _imageIcon = false;
+              _uploadedFileURL = '';
+              _uploading = false;
+            }))
+        .whenComplete(() => Toast.show('Profile picture changed', context,
+            duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM));
+  }
+
+  _showToastAndClearPersistence() async {
+    Firestore.instance.settings(persistenceEnabled: false);
+
+    Toast.show('User has been deleted', context,
         duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-    Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    _removeBool();
+    Future.delayed(const Duration(milliseconds: 2000), () {
+     SystemNavigator.pop();
+    });
   }
 }
 
@@ -1573,7 +1490,8 @@ class _PrivateChatState extends State<PrivateChat> {
                       children: <Widget>[
                         GestureDetector(
                           onTap: () {
-                            // _removeBool();
+                            _removeBool();
+                            print('pressed');
                           },
                           child: Icon(
                             Icons.exit_to_app,
@@ -1886,7 +1804,7 @@ class _PrivateChatState extends State<PrivateChat> {
       // 'colorBlue': colorBlue,
       //  'colorRed': colorRed,
       //  'colorGreen': colorGreen,
-      'photoUrl': photoUrl,
+      'photoUrl': avataarUrl,
       'downloadUrl': _uploadedFileURL
     });
     _clearImage();
@@ -1929,9 +1847,9 @@ class _PrivateChatState extends State<PrivateChat> {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     //String user = ModalRoute.of(context).settings.arguments;
     String user = preferences.getString('user2');
-    final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
-    var downloadUrl = await ref.getDownloadURL();
-    String photoUrl = downloadUrl.toString();
+    //final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
+    // var downloadUrl = await ref.getDownloadURL();
+    //  String photoUrl = downloadUrl.toString();
     //  int colorBlue = preferences.getInt('colorBlue');
     //  int colorRed = preferences.getInt('colorRed');
     //  int colorGreen = preferences.getInt('colorGreen');
@@ -1952,7 +1870,7 @@ class _PrivateChatState extends State<PrivateChat> {
       'date': Date,
       'dateUtc': dateUtc,
       'user': currentUser,
-      'photoUrl': photoUrl,
+      'photoUrl': avataarUrl,
       'downloadUrl': _uploadedFileURL
       //  'colorBlue': colorBlue,
       //  'colorRed': colorRed,
@@ -1970,7 +1888,7 @@ class _PrivateChatState extends State<PrivateChat> {
       'date': Date,
       'dateUtc': dateUtc,
       'user': currentUser,
-      'photoUrl': photoUrl,
+      'photoUrl': avataarUrl,
       'downloadUrl': _uploadedFileURL
       // 'colorBlue': colorBlue,
       //  'colorRed': colorRed,
@@ -1980,7 +1898,7 @@ class _PrivateChatState extends State<PrivateChat> {
       'message': message,
       'recipient': user,
       'user': currentUser,
-      'photoUrl': photoUrl,
+      'photoUrl': avataarUrl,
     });
     await databaseReference
         .collection('users')
@@ -2054,163 +1972,19 @@ class _PrivateChatState extends State<PrivateChat> {
       });
     });
   }
-}
 
-class PickImage extends StatefulWidget {
-  @override
-  _PickImageState createState() => new _PickImageState();
-}
-
-class _PickImageState extends State<PickImage> {
-  File _image;
-  String _uploadedFileURL;
-  final myController = TextEditingController();
-  final databaseReference = Firestore.instance;
-  final FirebaseMessaging _fcm = FirebaseMessaging();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  String currentUser = 'null';
-  ScrollController _scrollController = new ScrollController();
-  Stream<QuerySnapshot> mainStream;
-  Stream<QuerySnapshot> userStream;
-  String user2 = 'null';
-  int newMessageCount = 0;
-  bool isSwitched = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkUser();
+  void _removeBool() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.remove('bool');
+    String uid = currentUser;
+    String fcmToken = await _fcm.getToken();
+    await databaseReference
+        .collection('users')
+        .document(uid)
+        .collection('tokens')
+        .document(fcmToken)
+        .delete();
+    await _auth.signOut().whenComplete(() =>
+        SystemNavigator.pop());
   }
-
-  @override
-  Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-    return new MaterialApp(
-      home: new Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.grey,
-          title: const Text('Chat'),
-        ),
-        body: DecoratedBox(
-          position: DecorationPosition.background,
-          decoration: BoxDecoration(
-            color: Colors.grey,
-          ),
-          child: Center(
-            child: Column(
-              children: <Widget>[
-                Text('Selected Image'),
-                _image != null
-                    ? Image.asset(
-                        _image.path,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(height: 150),
-                _image == null
-                    ? RaisedButton(
-                        child: Text('Choose File'),
-                        onPressed: chooseFile,
-                        color: Colors.cyan,
-                      )
-                    : Container(),
-                _image != null
-                    ? RaisedButton(
-                        child: Text('Upload File'),
-                        onPressed: uploadFile,
-                        color: Colors.cyan,
-                      )
-                    : Container(),
-                _image != null
-                    ? RaisedButton(
-                        child: Text('Clear Selection'),
-                        onPressed: clearSelection(),
-                      )
-                    : Container(),
-                Text('Uploaded Image'),
-                _uploadedFileURL != null
-                    ? Image.network(
-                        _uploadedFileURL,
-                        height: 150,
-                      )
-                    : Container(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future chooseFile() async {
-    await ImagePicker.pickImage(source: ImageSource.gallery).then((image) {
-      setState(() {
-        _image = image;
-      });
-    });
-  }
-
-  Future uploadFile() async {
-    final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
-    var downloadUrl = await ref.getDownloadURL();
-    String photoUrl = downloadUrl.toString();
-    DateTime now = DateTime.now();
-    String dateUtc = now.toUtc().toString();
-    String date = now.toString();
-    String Date = DateFormat('kk:mm - dd-MM-yyyy').format(now);
-    StorageReference storageReference = FirebaseStorage.instance
-        .ref()
-        .child('chatPhotos/${Path.basename(_image.path)}');
-    StorageUploadTask uploadTask = storageReference.putFile(_image);
-    await uploadTask.onComplete;
-    print('File Uploaded');
-    storageReference.getDownloadURL().then((fileURL) {
-      setState(() {
-        _uploadedFileURL = fileURL;
-      });
-      _saveToFB();
-    });
-  }
-
-  _saveToFB() async {
-    //SharedPreferences preferences = await SharedPreferences.getInstance();
-    //String user = preferences.getString('user').toString();
-    // int colorBlue = preferences.getInt('colorBlue');
-    // int colorRed = preferences.getInt('colorRed');
-    //  int colorGreen = preferences.getInt('colorGreen');
-
-    final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
-    var downloadUrl = await ref.getDownloadURL();
-    String photoUrl = downloadUrl.toString();
-    DateTime now = DateTime.now();
-    String dateUtc = now.toUtc().toString();
-    String date = now.toString();
-    String Date = DateFormat('kk:mm - dd-MM-yyyy').format(now);
-    await databaseReference.collection('messages').document(date).setData({
-      'message': '',
-      'date': Date,
-      'dateUtc': dateUtc,
-      'user': currentUser,
-      // 'colorBlue': colorBlue,
-      //  'colorRed': colorRed,
-      //  'colorGreen': colorGreen,
-      'photoUrl': photoUrl,
-      'downloadUrl': _uploadedFileURL
-    });
-  }
-
-  void _checkUser() async {
-    FirebaseUser fbuser = await _auth.currentUser();
-
-    if (fbuser != null) {
-      setState(() {
-        currentUser = fbuser.email;
-      });
-    }
-  }
-
-  clearSelection() {}
 }
