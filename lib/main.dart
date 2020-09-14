@@ -125,10 +125,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       )
                     : Container(),
-                Text(
-                  'Register new account',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                ),
+               ClipRRect(
+                 borderRadius: BorderRadius.all(Radius.circular(40)),
+                 child:  Container(
+                   padding: EdgeInsets.all(12),
+                   color:Colors.grey[400],
+                   child: Text(
+                     'Register new account',
+                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
+                   ),
+                 )
+
+                 ),
                 Column(
                   children: [
                     Container(
@@ -168,11 +176,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         floatingActionButton: _uploading == true
             ? CircularProgressIndicator()
-            : FloatingActionButton(
+            : FloatingActionButton.extended(
                 onPressed:
                     _image != null ? _signUpWithEmailAndPassword : chooseFile,
                 tooltip: 'Register',
-                child: _image != null
+                label:_image != null ?Text('register'):Text('pick image'),
+                icon: _image != null
                     ? Icon(Icons.arrow_right)
                     : Icon(Icons.image),
               ), // This trailing comma makes auto-formatting nicer for build methods.
@@ -1009,12 +1018,13 @@ class _UserScreenState extends State<UserScreen> {
                         ? Column(
                             children: <Widget>[
                               _imageIcon == false || _image != null
-                                  ? FloatingActionButton(
+                                  ? FloatingActionButton.extended(
                                       heroTag: 'btn2',
                                       backgroundColor: Colors.green,
-                                      child: Icon(Icons.send),
+                                      icon: Icon(Icons.send),
+                                      label: Text('send'),
                                       elevation: 5,
-                                      tooltip: 'Search',
+                                      tooltip: 'send',
                                       onPressed: () {
                                         _scrollController.animateTo(
                                           0.0,
@@ -1037,12 +1047,13 @@ class _UserScreenState extends State<UserScreen> {
                                         }
                                       },
                                     )
-                                  : FloatingActionButton(
+                                  : FloatingActionButton.extended(
                                       heroTag: 'btn1',
                                       backgroundColor: Colors.green,
-                                      child: Icon(Icons.image),
+                                      icon: Icon(Icons.image),
+                                      label: Text('pick image'),
                                       elevation: 5,
-                                      tooltip: 'Search',
+                                      tooltip: 'pick image ',
                                       onPressed: () {
                                         chooseFile();
                                         // Navigator.pushNamed(context, '/pickImage');
@@ -1682,12 +1693,13 @@ class _PrivateChatState extends State<PrivateChat> {
                         ? Column(
                             children: <Widget>[
                               _imageIcon == false || _image != null
-                                  ? FloatingActionButton(
+                                  ? FloatingActionButton.extended(
                                       heroTag: 'btn2',
                                       backgroundColor: Colors.green,
-                                      child: Icon(Icons.send),
+                                icon: Icon(Icons.send),
+                                      label: Text('send'),
                                       elevation: 5,
-                                      tooltip: 'Search',
+                                      tooltip: 'send',
                                       onPressed: () {
                                         _scrollController.animateTo(
                                           0.0,
@@ -1712,12 +1724,12 @@ class _PrivateChatState extends State<PrivateChat> {
                                         }
                                       },
                                     )
-                                  : FloatingActionButton(
+                                  : FloatingActionButton.extended(
                                       heroTag: 'btn1',
                                       backgroundColor: Colors.green,
-                                      child: Icon(Icons.image),
+                                      icon:Icon(Icons.image),label: Text('pick image'),
                                       elevation: 5,
-                                      tooltip: 'Search',
+                                      tooltip: 'pick image',
                                       onPressed: () {
                                         chooseFile();
                                         // Navigator.pushNamed(context, '/pickImage');
