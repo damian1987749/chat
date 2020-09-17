@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_downloader/image_downloader.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -14,10 +16,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as Path;
 import 'dart:io';
 
+
 String heroUrl;
-String avataarUrl;
+String avatarUrl;
 
 void main() {
+  String userClickedInUserScreen;
   runApp(MaterialApp(
     title: 'Named Routes Demo',
     // Start the app with the "/" named route. In this case, the app starts
@@ -29,7 +33,7 @@ void main() {
       '/register': (context) => RegisterScreen(),
       // When navigating to the "/second" route, build the SecondScreen widget.
       '/user': (context) => UserScreen(),
-      '/privateChat': (context) => PrivateChat(),
+      '/privateChat': (context) => PrivateChat(userClickedInUserScreen),
     },
   ));
 }
@@ -41,18 +45,32 @@ class DetailScreen extends StatelessWidget {
       body: GestureDetector(
         child: Center(
           child: Hero(
-            tag: 'imageHero',
+            tag: heroUrl,
             child: Image.network(
               heroUrl,
             ),
           ),
         ),
+        onLongPress: (){_saveImage(heroUrl, context);},
+
         onTap: () {
           Navigator.pop(context);
         },
       ),
     );
   }
+
+  _saveImage(String heroUrl, BuildContext context) async {
+
+
+
+    await ImageDownloader.downloadImage(heroUrl, destination: AndroidDestinationType.directoryDownloads);
+
+
+
+  }
+
+
 }
 
 class RegisterScreen extends StatefulWidget {
@@ -125,18 +143,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       )
                     : Container(),
-               ClipRRect(
-                 borderRadius: BorderRadius.all(Radius.circular(40)),
-                 child:  Container(
-                   padding: EdgeInsets.all(12),
-                   color:Colors.grey[400],
-                   child: Text(
-                     'Register new account',
-                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
-                   ),
-                 )
-
-                 ),
+                ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(40)),
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      color: Colors.grey[400],
+                      child: Text(
+                        'Register new account',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 26),
+                      ),
+                    )),
                 Column(
                   children: [
                     Container(
@@ -180,7 +197,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onPressed:
                     _image != null ? _signUpWithEmailAndPassword : chooseFile,
                 tooltip: 'Register',
-                label:_image != null ?Text('register'):Text('pick image'),
+                label: _image != null ? Text('register') : Text('pick image'),
                 icon: _image != null
                     ? Icon(Icons.arrow_right)
                     : Icon(Icons.image),
@@ -212,10 +229,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     storageReference.getDownloadURL().then((fileURL) {
       setState(() {
         _uploadedFileURL = fileURL;
-        avataarUrl = fileURL;
+        avatarUrl = fileURL;
       });
       Firestore.instance.collection('users').document(_userEmail).setData(
-          {'photoUrl': avataarUrl, 'newMessage': 0, 'user': _userEmail});
+          {'photoUrl': avatarUrl, 'newMessage': 0, 'user': _userEmail});
     });
     Toast.show('the account has been created, you can log in now!', context,
         duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
@@ -332,7 +349,7 @@ class _FirstScreenState extends State<FirstScreen> {
                           margin: EdgeInsets.only(right: 10),
                           child: FloatingActionButton.extended(
                             heroTag: 'btn1',
-                             icon: Icon(Icons.add),
+                            icon: Icon(Icons.add),
                             label: Text('register'),
                             backgroundColor: Colors.blue,
                             elevation: 5,
@@ -415,7 +432,7 @@ class _FirstScreenState extends State<FirstScreen> {
         floatingActionButton: FloatingActionButton.extended(
           heroTag: 'btn2',
           label: Text('log in'),
-          icon : Icon(Icons.keyboard_arrow_right),
+          icon: Icon(Icons.keyboard_arrow_right),
           backgroundColor: Colors.green,
           elevation: 5,
           tooltip: 'Log in',
@@ -462,7 +479,7 @@ class _FirstScreenState extends State<FirstScreen> {
     // int randomIntGreen = min + random.nextInt(max - min);
     // int randomIntRed = min + random.nextInt(max - min);
 
-    preferences.setString('user', user);
+
     // preferences.setInt('colorBlue', randomIntBlue);
     //  preferences.setInt('colorRed', randomIntRed);
     //  preferences.setInt('colorGreen', randomIntGreen);
@@ -493,6 +510,9 @@ class _UserScreenState extends State<UserScreen> {
   Stream<QuerySnapshot> mainStream;
   Stream<QuerySnapshot> userStream;
   String user2 = 'null';
+  String userClickedInUserScreen = 'null';
+
+
   int newMessageCount = 0;
   bool isSwitched = false;
 
@@ -502,19 +522,23 @@ class _UserScreenState extends State<UserScreen> {
   bool _uploading = false;
 
   String _itemID;
+  int limit;
 
   String _userAvatar;
 
   @override
   void initState() {
     super.initState();
+    limit = 10;
+    _scrollController.addListener(_scrollListener);
+
 
     //databaseReference.settings(persistenceEnabled: false);
 
     mainStream = Firestore.instance
         .collection('messages')
         .orderBy('dateUtc', descending: true)
-        .limit(100)
+        .limit(limit)
         .snapshots();
     userStream = Firestore.instance.collection('users').snapshots();
     _fcm.configure(
@@ -564,6 +588,22 @@ class _UserScreenState extends State<UserScreen> {
     );
 
      */
+  }
+
+  void _scrollListener() {
+    if (_scrollController.offset >=
+        _scrollController.position.maxScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      print("at the end of list");
+      setState(() {
+        limit += limit;
+        mainStream = Firestore.instance
+            .collection('messages')
+            .orderBy('dateUtc', descending: true)
+            .limit(limit)
+            .snapshots();
+      });
+    }
   }
 
   @override
@@ -685,11 +725,11 @@ class _UserScreenState extends State<UserScreen> {
                           isSwitched = value;
                           isSwitched == true
                               ? Toast.show("Notifications on", context,
-                                  duration: Toast.LENGTH_SHORT,
-                                  gravity: Toast.TOP)
+                              duration: Toast.LENGTH_SHORT,
+                              gravity: Toast.TOP)
                               : Toast.show('Notifications off', context,
-                                  duration: Toast.LENGTH_SHORT,
-                                  gravity: Toast.TOP);
+                              duration: Toast.LENGTH_SHORT,
+                              gravity: Toast.TOP);
                           isSwitched == true
                               ? _fcm.subscribeToTopic('notifications')
                               : _fcm.unsubscribeFromTopic('notifications');
@@ -720,49 +760,50 @@ class _UserScreenState extends State<UserScreen> {
         ),
         drawer: Drawer(
             child: Container(
-          color: Colors.grey[200],
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            // Important: Remove any padding from the ListView.
-            //padding: EdgeInsets.zero,
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(top: 50),
-                child: Text(
-                  'Logged in as $currentUser',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
-              GestureDetector(
-                onLongPress: _pickImage,
-                child: Container(
-                    margin: EdgeInsets.only(top: 48),
-                    height: 160,
-                    width: 160,
-                    child: avataarUrl != null
-                        ? CircleAvatar(
-                            backgroundImage: NetworkImage(avataarUrl),
-                            radius: 90,
-                          )
-                        : CircleAvatar(
+              color: Colors.grey[200],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                // Important: Remove any padding from the ListView.
+                //padding: EdgeInsets.zero,
+                children: <Widget>[
+                  Container(
+                    margin: EdgeInsets.only(top: 50),
+                    child: Text(
+                      'Logged in as $currentUser',
+                      style: TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  GestureDetector(
+                    onLongPress: _pickImage,
+                    child: Container(
+                        margin: EdgeInsets.only(top: 48),
+                        height: 160,
+                        width: 160,
+                        child: avatarUrl != null
+                            ? CircleAvatar(
+                          backgroundImage: NetworkImage(avatarUrl),
+                          radius: 90,
+                        )
+                            : CircleAvatar(
                             backgroundImage: AssetImage('Login.jpg'))),
+                  ),
+                  Center(
+                    child: Container(
+                        margin: EdgeInsets.only(top: 48),
+                        child: GestureDetector(
+                            onTap: () {
+                              showAlertDelete(context);
+                            },
+                            child: Text(
+                              'Delete profile',
+                              style: TextStyle(fontSize: 20),
+                            ))),
+                  ),
+                ],
               ),
-              Center(
-                child: Container(
-                    margin: EdgeInsets.only(top: 48),
-                    child: GestureDetector(
-                        onTap: () {
-                          showAlertDelete(context);
-                        },
-                        child: Text(
-                          'Delete profile',
-                          style: TextStyle(fontSize: 20),
-                        ))),
-              ),
-            ],
-          ),
-        )),
+            )),
         body: DecoratedBox(
           position: DecorationPosition.background,
           decoration: BoxDecoration(
@@ -786,75 +827,80 @@ class _UserScreenState extends State<UserScreen> {
                         itemCount: snapshot.data.documents.length,
                         itemBuilder: (context, index) {
                           final user =
-                              snapshot.data.documents[index]['user'].toString();
+                          snapshot.data.documents[index]['user'].toString();
                           final String photoUrl =
-                              snapshot.data.documents[index]['photoUrl'];
+                          snapshot.data.documents[index]['photoUrl'];
                           final int newMessage =
-                              snapshot.data.documents[index]['newMessage'];
+                          snapshot.data.documents[index]['newMessage'];
 
                           return Stack(
                             children: <Widget>[
                               user != currentUser
                                   ? SizedBox(
-                                      height: 100,
-                                      width: 100,
-                                      child: Card(
-                                        shape: RoundedRectangleBorder(
-                                          side: BorderSide(
-                                              color: Colors.white70, width: 1),
-                                          borderRadius:
-                                              BorderRadius.circular(100),
-                                        ),
-                                        elevation: 6,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              user2 = user;
-                                            });
-                                            _setSharedPreferences();
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    PrivateChat(),
-                                                settings: RouteSettings(
-                                                  arguments: user,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(100.0),
-                                            child: CachedNetworkImage(
-                                              fit: BoxFit.cover,
-                                              imageUrl: photoUrl,
-                                              placeholder: (context, url) =>
-                                                  CircularProgressIndicator(),
-                                              fadeOutDuration: const Duration(
-                                                  milliseconds: 300),
-                                              fadeInDuration: const Duration(
-                                                  milliseconds: 300),
-                                            ),
+                                height: 100,
+                                width: 100,
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                        color: Colors.white70, width: 1),
+                                    borderRadius:
+                                    BorderRadius.circular(100),
+                                  ),
+                                  elevation: 6,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        user2 = user;
+                                          userClickedInUserScreen= user;
+                                      });
+
+                                      /*
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              PrivateChat(),
+                                          settings: RouteSettings(
+                                            arguments: user,
                                           ),
                                         ),
+                                      );
+
+                                       */
+                                      Navigator.push(context, new MaterialPageRoute(builder: (BuildContext context) => new PrivateChat(userClickedInUserScreen)));
+                                    },
+                                    child: ClipRRect(
+                                      borderRadius:
+                                      BorderRadius.circular(100.0),
+                                      child: CachedNetworkImage(
+                                        fit: BoxFit.cover,
+                                        imageUrl: photoUrl,
+                                        placeholder: (context, url) =>
+                                            CircularProgressIndicator(),
+                                        fadeOutDuration: const Duration(
+                                            milliseconds: 300),
+                                        fadeInDuration: const Duration(
+                                            milliseconds: 300),
                                       ),
-                                    )
+                                    ),
+                                  ),
+                                ),
+                              )
                                   : new Container(),
                               currentUser != user && newMessage != 0
                                   ? new Positioned(
-                                      bottom: 0.0,
-                                      right: 8.0,
-                                      child: new Card(
-                                        color: Colors.white,
-                                        child: Text(
-                                          newMessage.toString(),
-                                          style: TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.lightBlue),
-                                        ),
-                                      ))
+                                  bottom: 0.0,
+                                  right: 8.0,
+                                  child: new Card(
+                                    color: Colors.white,
+                                    child: Text(
+                                      newMessage.toString(),
+                                      style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.lightBlue),
+                                    ),
+                                  ))
                                   : new Container(),
                             ],
                           );
@@ -882,18 +928,18 @@ class _UserScreenState extends State<UserScreen> {
                               .data.documents[index]['message']
                               .toString();
                           final timestamp =
-                              snapshot.data.documents[index]['date'].toString();
+                          snapshot.data.documents[index]['date'].toString();
                           final user =
-                              snapshot.data.documents[index]['user'].toString();
+                          snapshot.data.documents[index]['user'].toString();
                           String userFormatted =
-                              user.substring(0, user.indexOf('@'));
+                          user.substring(0, user.indexOf('@'));
                           final itemID =
                               snapshot.data.documents[index].documentID;
                           final list = snapshot.data.documents;
                           final String photoUrl =
-                              snapshot.data.documents[index]['photoUrl'];
+                          snapshot.data.documents[index]['photoUrl'];
                           final String downloadUrl =
-                              snapshot.data.documents[index]['downloadUrl'];
+                          snapshot.data.documents[index]['downloadUrl'];
                           return Dismissible(
                             onDismissed: (direction) {
                               if (user == currentUser) {
@@ -907,7 +953,7 @@ class _UserScreenState extends State<UserScreen> {
                                   mainStream = Firestore.instance
                                       .collection('messages')
                                       .orderBy('dateUtc', descending: true)
-                                      .limit(100)
+                                      .limit(limit)
                                       .snapshots();
 
                                   userStream = Firestore.instance
@@ -928,51 +974,54 @@ class _UserScreenState extends State<UserScreen> {
                               ),
                               child: downloadUrl == ""
                                   ? ListTile(
-                                      title: SelectableText(message),
-                                      subtitle: Text(userFormatted),
-                                      trailing: Text(timestamp),
-                                      leading: ClipRRect(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(100.0)),
-                                        child: CachedNetworkImage(
-                                          height: 50,
-                                          width: 50,
-                                          fit: BoxFit.cover,
-                                          imageUrl: photoUrl,
-                                          placeholder: (context, url) =>
-                                              CircularProgressIndicator(),
-                                          fadeOutDuration:
-                                              const Duration(milliseconds: 300),
-                                          fadeInDuration:
-                                              const Duration(milliseconds: 300),
-                                        ),
-                                      ),
-                                    )
+                                title: SelectableText(message),
+                                subtitle: Text(userFormatted),
+                                trailing: Text(timestamp),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.all(
+                                      Radius.circular(100.0)),
+                                  child: CachedNetworkImage(
+                                    height: 50,
+                                    width: 50,
+                                    fit: BoxFit.cover,
+                                    imageUrl: photoUrl,
+                                    placeholder: (context, url) =>
+                                        CircularProgressIndicator(),
+                                    fadeOutDuration:
+                                    const Duration(milliseconds: 300),
+                                    fadeInDuration:
+                                    const Duration(milliseconds: 300),
+                                  ),
+                                ),
+                              )
                                   : GestureDetector(
-                                      child: Hero(
-                                        tag: 'imageHero',
-                                        child: CachedNetworkImage(
-                                          //height: 250,
-                                          fit: BoxFit.cover,
-                                          imageUrl: downloadUrl,
-                                          placeholder: (context, url) =>
-                                              LinearProgressIndicator(),
-                                          fadeOutDuration:
-                                              const Duration(milliseconds: 300),
-                                          fadeInDuration:
-                                              const Duration(milliseconds: 300),
-                                        ),
-                                      ),
-                                      onTap: () {
-                                        setState(() {
-                                          heroUrl = downloadUrl;
-                                        });
-                                        Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) {
-                                          return DetailScreen();
-                                        }));
-                                      },
-                                    ),
+                                child: Hero(
+
+                                  child: CachedNetworkImage(
+                                    //height: 250,
+                                    fit: BoxFit.cover,
+                                    imageUrl: downloadUrl,
+                                    placeholder: (context, url) =>
+                                        LinearProgressIndicator(),
+                                    fadeOutDuration:
+                                    const Duration(milliseconds: 300),
+                                    fadeInDuration:
+                                    const Duration(milliseconds: 300),
+                                  ),
+                                  tag: downloadUrl,
+                                ),
+
+
+                                onTap: () {
+                                  setState(() {
+                                    heroUrl = downloadUrl;
+                                  });
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (_) {
+                                        return DetailScreen();
+                                      }));
+                                },
+                              ),
                             ),
                             key: UniqueKey(),
                           );
@@ -1016,51 +1065,51 @@ class _UserScreenState extends State<UserScreen> {
                     ),
                     _uploading == false
                         ? Column(
-                            children: <Widget>[
-                              _imageIcon == false || _image != null
-                                  ? FloatingActionButton.extended(
-                                      heroTag: 'btn2',
-                                      backgroundColor: Colors.green,
-                                      icon: Icon(Icons.send),
-                                      label: Text('send'),
-                                      elevation: 5,
-                                      tooltip: 'send',
-                                      onPressed: () {
-                                        _scrollController.animateTo(
-                                          0.0,
-                                          curve: Curves.easeOut,
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                        );
-                                        if (_image != null) {
-                                          setState(() {
-                                            _uploading = true;
-                                          });
-                                          _uploadAndSave();
-                                          // _clearImage();
+                      children: <Widget>[
+                        _imageIcon == false || _image != null
+                            ? FloatingActionButton.extended(
+                          heroTag: 'btn2',
+                          backgroundColor: Colors.green,
+                          icon: Icon(Icons.send),
+                          label: Text('send'),
+                          elevation: 5,
+                          tooltip: 'send',
+                          onPressed: () {
+                            _scrollController.animateTo(
+                              0.0,
+                              curve: Curves.easeOut,
+                              duration:
+                              const Duration(milliseconds: 300),
+                            );
+                            if (_image != null) {
+                              setState(() {
+                                _uploading = true;
+                              });
+                              _uploadAndSave();
+                              // _clearImage();
 
-                                        } else {
-                                          if (myController.text != '') {
-                                            _saveToFB();
-                                            myController.clear();
-                                          }
-                                        }
-                                      },
-                                    )
-                                  : FloatingActionButton.extended(
-                                      heroTag: 'btn1',
-                                      backgroundColor: Colors.green,
-                                      icon: Icon(Icons.image),
-                                      label: Text('pick image'),
-                                      elevation: 5,
-                                      tooltip: 'pick image ',
-                                      onPressed: () {
-                                        chooseFile();
-                                        // Navigator.pushNamed(context, '/pickImage');
-                                      },
-                                    )
-                            ],
-                          )
+                            } else {
+                              if (myController.text != '') {
+                                _saveToFB();
+                                myController.clear();
+                              }
+                            }
+                          },
+                        )
+                            : FloatingActionButton.extended(
+                          heroTag: 'btn1',
+                          backgroundColor: Colors.green,
+                          icon: Icon(Icons.image),
+                          label: Text('pick image'),
+                          elevation: 5,
+                          tooltip: 'pick image ',
+                          onPressed: () {
+                            chooseFile();
+                            // Navigator.pushNamed(context, '/pickImage');
+                          },
+                        )
+                      ],
+                    )
                         : CircularProgressIndicator(),
                   ],
                 ),
@@ -1128,7 +1177,7 @@ class _UserScreenState extends State<UserScreen> {
       // 'colorBlue': colorBlue,
       //  'colorRed': colorRed,
       //  'colorGreen': colorGreen,
-      'photoUrl': avataarUrl,
+      'photoUrl': avatarUrl,
       //'photoUrl': photoUrl,
       'downloadUrl': _uploadedFileURL
     });
@@ -1171,9 +1220,9 @@ class _UserScreenState extends State<UserScreen> {
         .get()
         .then((value) {
       setState(() {
-        avataarUrl = value.data['photoUrl'].toString();
+        avatarUrl = value.data['photoUrl'].toString();
       });
-      print(avataarUrl);
+      print(avatarUrl);
     });
     /*
     new Timer(new Duration(milliseconds: 1000), () async {
@@ -1209,10 +1258,7 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
-  _setSharedPreferences() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.setString('user2', user2);
-  }
+
 
   _subscribeToNotifications() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
@@ -1226,10 +1272,10 @@ class _UserScreenState extends State<UserScreen> {
 
   Future chooseFile() async {
     await ImagePicker.pickImage(
-            source: ImageSource.gallery,
-            maxHeight: 1080,
-            maxWidth: 1920,
-            imageQuality: 40)
+        source: ImageSource.gallery,
+        maxHeight: 1080,
+        maxWidth: 1920,
+        imageQuality: 40)
         .then((image) {
       setState(() {
         _image = image;
@@ -1269,10 +1315,10 @@ class _UserScreenState extends State<UserScreen> {
 
   void _pickImage() async {
     await ImagePicker.pickImage(
-            source: ImageSource.gallery,
-            maxHeight: 1080,
-            maxWidth: 1920,
-            imageQuality: 40)
+        source: ImageSource.gallery,
+        maxHeight: 1080,
+        maxWidth: 1920,
+        imageQuality: 40)
         .then((image) {
       setState(() {
         _image = image;
@@ -1290,7 +1336,7 @@ class _UserScreenState extends State<UserScreen> {
 
     storageReference.getDownloadURL().then((fileURL) {
       setState(() {
-        avataarUrl = fileURL;
+        avatarUrl = fileURL;
         _saveNewAvatartoDB();
       });
     });
@@ -1312,14 +1358,16 @@ class _UserScreenState extends State<UserScreen> {
     await Firestore.instance
         .collection('users')
         .document(currentUser)
-        .setData({'photoUrl': avataarUrl, 'newMessage': 0, 'user': currentUser})
-        .whenComplete(() => setState(() {
-              _image = null;
-              _imageIcon = false;
-              _uploadedFileURL = '';
-              _uploading = false;
-            }))
-        .whenComplete(() => Toast.show('Profile picture changed', context,
+        .setData({'photoUrl': avatarUrl, 'newMessage': 0, 'user': currentUser})
+        .whenComplete(() =>
+        setState(() {
+          _image = null;
+          _imageIcon = false;
+          _uploadedFileURL = '';
+          _uploading = false;
+        }))
+        .whenComplete(() =>
+        Toast.show('Profile picture changed', context,
             duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM));
   }
 
@@ -1330,20 +1378,32 @@ class _UserScreenState extends State<UserScreen> {
         duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
     _removeBool();
     Future.delayed(const Duration(milliseconds: 2000), () {
-     SystemNavigator.pop();
+      SystemNavigator.pop();
     });
   }
+
+
+
+
+
 }
 
+
 class PrivateChat extends StatefulWidget {
+  PrivateChat(this.userClickedInUserScreen);
+  String userClickedInUserScreen;
   @override
-  _PrivateChatState createState() => _PrivateChatState();
+  _PrivateChatState createState() => _PrivateChatState(userClickedInUserScreen);
 }
 
 class _PrivateChatState extends State<PrivateChat> {
+  _PrivateChatState(this.userClickedInUserScreen);
+
+  String userClickedInUserScreen;
   final databaseReference = Firestore.instance;
   String currentUser = 'null';
   String user2 = 'null';
+
   final myController = TextEditingController();
   final FirebaseMessaging _fcm = FirebaseMessaging();
   ScrollController _scrollController = new ScrollController();
@@ -1452,7 +1512,7 @@ class _PrivateChatState extends State<PrivateChat> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    final String userClicked = ModalRoute.of(context).settings.arguments;
+   // final String userClicked = ModalRoute.of(context).settings.arguments;
 
     return MaterialApp(
       title: 'Welcome to Flutter',
@@ -1530,7 +1590,7 @@ class _PrivateChatState extends State<PrivateChat> {
                         .collection('privateChats')
                         .document('users')
                         .collection(currentUser)
-                        .document(userClicked)
+                        .document(userClickedInUserScreen)
                         .collection('messages')
                         .orderBy('dateUtc', descending: true)
                         .limit(100)
@@ -1586,7 +1646,7 @@ class _PrivateChatState extends State<PrivateChat> {
                                       .collection('privateChats')
                                       .document('users')
                                       .collection(currentUser)
-                                      .document(userClicked)
+                                      .document(userClickedInUserScreen)
                                       .collection('messages')
                                       .orderBy('dateUtc', descending: true)
                                       .limit(100)
@@ -1625,7 +1685,7 @@ class _PrivateChatState extends State<PrivateChat> {
                                     )
                                   : GestureDetector(
                                       child: Hero(
-                                        tag: 'imageHero',
+                                        tag: downloadUrl,
                                         child: CachedNetworkImage(
                                           //height: 250,
                                           fit: BoxFit.cover,
@@ -1638,6 +1698,7 @@ class _PrivateChatState extends State<PrivateChat> {
                                               const Duration(milliseconds: 300),
                                         ),
                                       ),
+
                                       onTap: () {
                                         setState(() {
                                           heroUrl = downloadUrl;
@@ -1696,7 +1757,7 @@ class _PrivateChatState extends State<PrivateChat> {
                                   ? FloatingActionButton.extended(
                                       heroTag: 'btn2',
                                       backgroundColor: Colors.green,
-                                icon: Icon(Icons.send),
+                                      icon: Icon(Icons.send),
                                       label: Text('send'),
                                       elevation: 5,
                                       tooltip: 'send',
@@ -1727,7 +1788,8 @@ class _PrivateChatState extends State<PrivateChat> {
                                   : FloatingActionButton.extended(
                                       heroTag: 'btn1',
                                       backgroundColor: Colors.green,
-                                      icon:Icon(Icons.image),label: Text('pick image'),
+                                      icon: Icon(Icons.image),
+                                      label: Text('pick image'),
                                       elevation: 5,
                                       tooltip: 'pick image',
                                       onPressed: () {
@@ -1763,12 +1825,9 @@ class _PrivateChatState extends State<PrivateChat> {
   }
 
   void _checkUser() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String user = preferences.getString('user2').toString();
+
     FirebaseUser fbuser = await _auth.currentUser();
-    setState(() {
-      user2 = user;
-    });
+
 
     if (fbuser != null) {
       setState(() {
@@ -1816,7 +1875,7 @@ class _PrivateChatState extends State<PrivateChat> {
       // 'colorBlue': colorBlue,
       //  'colorRed': colorRed,
       //  'colorGreen': colorGreen,
-      'photoUrl': avataarUrl,
+      'photoUrl': avatarUrl,
       'downloadUrl': _uploadedFileURL
     });
     _clearImage();
@@ -1834,7 +1893,7 @@ class _PrivateChatState extends State<PrivateChat> {
   void removeFromDb(itemID) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     //String user2 = ModalRoute.of(context).settings.arguments;
-    String user2 = preferences.getString('user2');
+   // String user2 = preferences.getString('user2');
     await databaseReference
         .collection('privateChats')
         .document('users')
@@ -1858,7 +1917,8 @@ class _PrivateChatState extends State<PrivateChat> {
 
     SharedPreferences preferences = await SharedPreferences.getInstance();
     //String user = ModalRoute.of(context).settings.arguments;
-    String user = preferences.getString('user2');
+
+    String user = userClickedInUserScreen;
     //final ref = FirebaseStorage.instance.ref().child(currentUser + '.jpg');
     // var downloadUrl = await ref.getDownloadURL();
     //  String photoUrl = downloadUrl.toString();
@@ -1882,7 +1942,7 @@ class _PrivateChatState extends State<PrivateChat> {
       'date': Date,
       'dateUtc': dateUtc,
       'user': currentUser,
-      'photoUrl': avataarUrl,
+      'photoUrl': avatarUrl,
       'downloadUrl': _uploadedFileURL
       //  'colorBlue': colorBlue,
       //  'colorRed': colorRed,
@@ -1900,7 +1960,7 @@ class _PrivateChatState extends State<PrivateChat> {
       'date': Date,
       'dateUtc': dateUtc,
       'user': currentUser,
-      'photoUrl': avataarUrl,
+      'photoUrl': avatarUrl,
       'downloadUrl': _uploadedFileURL
       // 'colorBlue': colorBlue,
       //  'colorRed': colorRed,
@@ -1910,7 +1970,7 @@ class _PrivateChatState extends State<PrivateChat> {
       'message': message,
       'recipient': user,
       'user': currentUser,
-      'photoUrl': avataarUrl,
+      'photoUrl': avatarUrl,
     });
     await databaseReference
         .collection('users')
@@ -1921,8 +1981,8 @@ class _PrivateChatState extends State<PrivateChat> {
   }
 
   void _removeNewMessage() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String user = preferences.getString('user2').toString();
+
+    String user = userClickedInUserScreen;
     await databaseReference
         .collection('users')
         .document(user)
@@ -1930,8 +1990,8 @@ class _PrivateChatState extends State<PrivateChat> {
   }
 
   void _getNewMessageCount() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String user = preferences.getString('user2').toString();
+
+    String user = userClickedInUserScreen;
     await databaseReference
         .collection('users')
         .document(user)
@@ -1946,7 +2006,7 @@ class _PrivateChatState extends State<PrivateChat> {
   void _removeFromDbNew() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     //String user2 = ModalRoute.of(context).settings.arguments;
-    String user2 = preferences.getString('user2');
+    String user2 = userClickedInUserScreen;
     await databaseReference
         .collection('privateChats')
         .document('users')
@@ -1996,7 +2056,6 @@ class _PrivateChatState extends State<PrivateChat> {
         .collection('tokens')
         .document(fcmToken)
         .delete();
-    await _auth.signOut().whenComplete(() =>
-        SystemNavigator.pop());
+    await _auth.signOut().whenComplete(() => SystemNavigator.pop());
   }
 }
