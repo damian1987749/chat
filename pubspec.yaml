@@ -38,7 +38,8 @@ dependencies:
   intl: ^0.16.1
   cached_network_image: ^2.0.0
   image_picker: ^0.6.7+7
-  image_downloader: ^0.20.0
+  dio: ^3.0.10
+  path_provider: ^1.6.14
 
 
 

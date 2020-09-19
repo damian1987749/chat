@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_downloader/image_downloader.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +20,7 @@ import 'dart:io';
 
 String heroUrl;
 String avatarUrl;
+var dio = Dio();
 
 void main() {
   String userClickedInUserScreen;
@@ -51,7 +53,18 @@ class DetailScreen extends StatelessWidget {
             ),
           ),
         ),
-        onLongPress: (){_saveImage(heroUrl, context);},
+        onLongPress: () async {
+          var tempDir = await getExternalStorageDirectory();
+          DateTime now = DateTime.now();
+          String dateIso = now.toIso8601String();
+
+          String fullPath = tempDir.path + dateIso + '.jpg';
+          print('full path ${fullPath}');
+
+
+
+          _saveImage(heroUrl, dio, fullPath).whenComplete(() => Toast.show('image  has been saved to $fullPath', context, duration: Toast.LENGTH_LONG,gravity: Toast.BOTTOM));
+        },
 
         onTap: () {
           Navigator.pop(context);
@@ -60,18 +73,45 @@ class DetailScreen extends StatelessWidget {
     );
   }
 
-  _saveImage(String heroUrl, BuildContext context) async {
+  Future _saveImage(String heroUrl, Dio dio, String savePath) async {
+    try {
+      Response response = await dio.get(
+        heroUrl,
 
 
-
-    await ImageDownloader.downloadImage(heroUrl, destination: AndroidDestinationType.directoryDownloads);
-
-
-
+        onReceiveProgress: showDownloadProgress,
+        //Received data with List<int>
+        options: Options(
+            responseType: ResponseType.bytes,
+            followRedirects: false,
+            validateStatus: (status) {
+              return status < 500;
+            }),
+      );
+      print(response.headers);
+      File file = File(savePath);
+      var raf = file.openSync(mode: FileMode.write);
+      // response.data is List<int> type
+      raf.writeFromSync(response.data);
+      await raf.close();
+    } catch (e) {
+      print(e);
+    }
   }
 
-
+  void showDownloadProgress(received, total) {
+    if (total != -1) {
+      print((received / total * 100).toStringAsFixed(0) + "%");
+    }
+  }
 }
+
+
+
+
+
+
+
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -1013,6 +1053,7 @@ class _UserScreenState extends State<UserScreen> {
 
 
                                 onTap: () {
+                                  Toast.show('long press to save image', context, duration: Toast.LENGTH_SHORT,gravity: Toast.BOTTOM);
                                   setState(() {
                                     heroUrl = downloadUrl;
                                   });
