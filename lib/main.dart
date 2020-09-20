@@ -54,7 +54,7 @@ class DetailScreen extends StatelessWidget {
         ),
         onLongPress: () async {
           _requestWritePermission(context);
-          Navigator.pop(context);
+          ;
         },
         onTap: () {
           Navigator.pop(context);
@@ -64,11 +64,11 @@ class DetailScreen extends StatelessWidget {
   }
 
   Future _saveImage(BuildContext context) async {
-    var tempDir = await getExternalStorageDirectory();
+    var tempDir = '/storage/emulated/0/Download/';
     DateTime now = DateTime.now();
     String dateIso = now.toIso8601String();
 
-    String fullPath = tempDir.path + dateIso + '.jpg';
+    String fullPath = tempDir + dateIso + '.jpg';
     print('full path ${fullPath}');
 
     try {
@@ -89,9 +89,11 @@ class DetailScreen extends StatelessWidget {
       var raf = file.openSync(mode: FileMode.write);
       // response.data is List<int> type
       raf.writeFromSync(response.data);
-      await raf.close().whenComplete(() => Toast.show(
-          'image  has been saved to $fullPath', context,
-          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM));
+      await raf.close();
+     Toast.show(
+    'image  has been saved to $fullPath', context,
+    duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+
     } catch (e) {
       print(e);
     }
@@ -104,19 +106,17 @@ class DetailScreen extends StatelessWidget {
   }
 
   void _requestWritePermission(context) async {
-    if (await Permission.storage.request().isGranted &&
-        await Permission.accessMediaLocation.request().isGranted &&
-        await Permission.mediaLibrary.request().isGranted) {
+    if (await Permission.storage.request().isGranted )
+        {
       _saveImage(context);
     }
 
 // You can request multiple permissions at once.
     Map<Permission, PermissionStatus> statuses = await [
-      Permission.accessMediaLocation,
-      Permission.mediaLibrary,
+
       Permission.storage,
     ].request();
-    _saveImage(context);
+
   }
 }
 
