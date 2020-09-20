@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +20,7 @@ import 'dart:io';
 String heroUrl;
 String avatarUrl;
 var dio = Dio();
+bool blackTheme;
 
 void main() {
   String userClickedInUserScreen;
@@ -90,10 +91,8 @@ class DetailScreen extends StatelessWidget {
       // response.data is List<int> type
       raf.writeFromSync(response.data);
       await raf.close();
-     Toast.show(
-    'image  has been saved to $fullPath', context,
-    duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
-
+      Toast.show('image  has been saved to $fullPath', context,
+          duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
     } catch (e) {
       print(e);
     }
@@ -106,17 +105,14 @@ class DetailScreen extends StatelessWidget {
   }
 
   void _requestWritePermission(context) async {
-    if (await Permission.storage.request().isGranted )
-        {
+    if (await Permission.storage.request().isGranted) {
       _saveImage(context);
     }
 
 // You can request multiple permissions at once.
     Map<Permission, PermissionStatus> statuses = await [
-
       Permission.storage,
     ].request();
-
   }
 }
 
@@ -740,8 +736,8 @@ class _UserScreenState extends State<UserScreen> {
       title: 'Welcome to Flutter',
       home: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.grey,
-          title: const Text('Chat'),
+          backgroundColor: blackTheme == true ? Colors.black : Colors.grey,
+          title: Text(currentUser),
           automaticallyImplyLeading: true,
           actions: <Widget>[
             //removed because no point. useful on desktop
@@ -758,6 +754,7 @@ class _UserScreenState extends State<UserScreen> {
               ),
             ),
           */
+
             Padding(
                 padding: EdgeInsets.only(right: 30.0, top: 10, bottom: 5),
                 child: Row(
@@ -837,11 +834,25 @@ class _UserScreenState extends State<UserScreen> {
                     margin: EdgeInsets.only(top: 48),
                     child: GestureDetector(
                         onTap: () {
+                          setState(() {
+                            _changeTheme();
+                          });
+                        },
+                        child: Text(
+                          'Change theme',
+                          style: TextStyle(fontSize: 20),
+                        ))),
+              ),
+              Center(
+                child: Container(
+                    margin: EdgeInsets.only(top: 48),
+                    child: GestureDetector(
+                        onTap: () {
                           showAlertDelete(context);
                         },
                         child: Text(
                           'Delete profile',
-                          style: TextStyle(fontSize: 20),
+                          style: TextStyle(fontSize: 20, color: Colors.red),
                         ))),
               ),
             ],
@@ -850,7 +861,7 @@ class _UserScreenState extends State<UserScreen> {
         body: DecoratedBox(
           position: DecorationPosition.background,
           decoration: BoxDecoration(
-            color: Colors.grey,
+            color:  blackTheme == true ? Colors.black : Colors.grey,
           ),
           child: Container(
             padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
@@ -1088,7 +1099,7 @@ class _UserScreenState extends State<UserScreen> {
                       child: GestureDetector(
                         onDoubleTap: _changeIcon,
                         child: Container(
-                          margin: EdgeInsets.only(left: 5, right: 5),
+                          margin: EdgeInsets.only(left: 5, right: 5, top:5),
                           child: ClipRRect(
                             borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(20.0),
@@ -1119,7 +1130,7 @@ class _UserScreenState extends State<UserScreen> {
                               _imageIcon == false || _image != null
                                   ? FloatingActionButton.extended(
                                       heroTag: 'btn2',
-                                      backgroundColor: Colors.green,
+                                      backgroundColor: Colors.grey[800],
                                       icon: Icon(Icons.send),
                                       label: Text('send'),
                                       elevation: 5,
@@ -1148,7 +1159,7 @@ class _UserScreenState extends State<UserScreen> {
                                     )
                                   : FloatingActionButton.extended(
                                       heroTag: 'btn1',
-                                      backgroundColor: Colors.green,
+                                      backgroundColor: Colors.grey[800],
                                       icon: Icon(Icons.image),
                                       label: Text('pick image'),
                                       elevation: 5,
@@ -1427,6 +1438,22 @@ class _UserScreenState extends State<UserScreen> {
       SystemNavigator.pop();
     });
   }
+
+  void _changeTheme() async {
+    if (blackTheme == false) {
+      setState(() {
+        blackTheme = true;
+        Toast.show('changed to black theme', context,
+            duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+      });
+    } else {
+      setState(() {
+        blackTheme = false;
+        Toast.show('changed to grey theme', context,
+            duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
+      });
+    }
+  }
 }
 
 class PrivateChat extends StatefulWidget {
@@ -1591,8 +1618,8 @@ class _PrivateChatState extends State<PrivateChat> {
       title: 'Welcome to Flutter',
       home: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.grey,
-          title: const Text('Chat'),
+          backgroundColor: blackTheme == true ? Colors.black : Colors.grey,
+          title: Text(currentUser),
           automaticallyImplyLeading: true,
           actions: <Widget>[
             //removed because no point. useful on desktop
@@ -1651,7 +1678,7 @@ class _PrivateChatState extends State<PrivateChat> {
         body: DecoratedBox(
           position: DecorationPosition.background,
           decoration: BoxDecoration(
-            color: Colors.grey,
+            color:  blackTheme == true ? Colors.black : Colors.grey,
           ),
           child: Container(
             padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
@@ -1797,7 +1824,7 @@ class _PrivateChatState extends State<PrivateChat> {
                       child: GestureDetector(
                         onDoubleTap: _changeIcon,
                         child: Container(
-                          margin: EdgeInsets.only(left: 5, right: 5),
+                          margin: EdgeInsets.only(left: 5, right: 5,top: 5),
                           child: ClipRRect(
                             borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(20.0),
@@ -1828,7 +1855,7 @@ class _PrivateChatState extends State<PrivateChat> {
                               _imageIcon == false || _image != null
                                   ? FloatingActionButton.extended(
                                       heroTag: 'btn2',
-                                      backgroundColor: Colors.green,
+                                      backgroundColor: Colors.grey[800],
                                       icon: Icon(Icons.send),
                                       label: Text('send'),
                                       elevation: 5,
@@ -1859,7 +1886,7 @@ class _PrivateChatState extends State<PrivateChat> {
                                     )
                                   : FloatingActionButton.extended(
                                       heroTag: 'btn1',
-                                      backgroundColor: Colors.green,
+                                      backgroundColor: Colors.grey[800],
                                       icon: Icon(Icons.image),
                                       label: Text('pick image'),
                                       elevation: 5,
