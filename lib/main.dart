@@ -570,6 +570,7 @@ class _UserScreenState extends State<UserScreen> {
   @override
   void initState() {
     super.initState();
+    blackTheme=true;
     limit = 10;
     _scrollController.addListener(_scrollListener);
 
@@ -1091,7 +1092,7 @@ class _UserScreenState extends State<UserScreen> {
                     },
                   ),
                 ),
-                //
+
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.end,
