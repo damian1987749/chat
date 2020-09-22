@@ -578,8 +578,8 @@ class _UserScreenState extends State<UserScreen> {
   @override
   void initState() {
     super.initState();
-    blackTheme = true;
-    limit = 10;
+
+    limit = 30;
     _scrollController.addListener(_scrollListener);
 
     //databaseReference.settings(persistenceEnabled: false);
@@ -1289,8 +1289,10 @@ class _UserScreenState extends State<UserScreen> {
   void _checkUser() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     FirebaseUser fbuser = await _auth.currentUser();
+    bool blackThemeSharedPreferences = preferences.get('blackTheme');
     bool notifications = preferences.getBool('notifications');
     setState(() {
+      blackTheme= blackThemeSharedPreferences;
       isSwitched = notifications;
     });
 
@@ -1477,13 +1479,17 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   void _changeTheme() async {
-    if (blackTheme == false) {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    if (blackTheme != true) {
+
+      preferences.setBool('blackTheme', true);
       setState(() {
         blackTheme = true;
         Toast.show('changed to black theme', context,
             duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
       });
     } else {
+      preferences.setBool('blackTheme', false);
       setState(() {
         blackTheme = false;
         Toast.show('changed to grey theme', context,
@@ -1527,7 +1533,7 @@ class _PrivateChatState extends State<PrivateChat> {
   @override
   void initState() {
     super.initState();
-    _limit = 10;
+    _limit = 30;
     _scrollController.addListener(_scrollListener);
 
     _checkUser();
@@ -1977,7 +1983,13 @@ class _PrivateChatState extends State<PrivateChat> {
   }
 
   void _checkUser() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
     FirebaseUser fbuser = await _auth.currentUser();
+    bool blackThemeSharedPreferences = preferences.get('blackTheme');
+
+    setState(() {
+      blackTheme = blackThemeSharedPreferences;
+    });
 
     if (fbuser != null) {
       setState(() {
