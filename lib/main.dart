@@ -17,6 +17,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as Path;
 import 'dart:io';
 
+import 'package:translit/translit.dart';
+
 String heroUrl;
 String avatarUrl;
 var dio = Dio();
@@ -223,6 +225,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             decoration:
                                 InputDecoration(hintText: '   Password'),
                             controller: myPasswordController,
+                            obscureText: true,
                           ),
                         ),
                       ),
@@ -285,13 +288,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _signUpWithEmailAndPassword() async {
+    String passwordTranslited = myPasswordController.text;
+    String unTranslitedPassword = Translit().unTranslit(source: passwordTranslited);
     setState(() {
       _uploading = true;
     });
 
     final FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
       email: myEmailController.text,
-      password: myPasswordController.text,
+      password: unTranslitedPassword,
     ))
         .user;
     if (user != null) {
@@ -452,6 +457,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                   color: Colors.blue,
                                 ),
                                 controller: _passwordController,
+                                obscureText: true,
                               ),
                             ),
                           ),
@@ -488,9 +494,11 @@ class _FirstScreenState extends State<FirstScreen> {
   }
 
   void _signInWithEmailAndPassword() async {
+    String passwordTranslited = _passwordController.text;
+    String unTranslitedPassword = Translit().unTranslit(source: passwordTranslited);
     final FirebaseUser user = (await _auth.signInWithEmailAndPassword(
       email: _emailController.text,
-      password: _passwordController.text,
+      password: unTranslitedPassword,
     ))
         .user;
     if (user != null) {
@@ -1215,7 +1223,7 @@ class _UserScreenState extends State<UserScreen> {
 
   _removeBool() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.remove('bool');
+     preferences.remove('bool');
     String uid = currentUser;
     String fcmToken = await _fcm.getToken();
     await databaseReference
@@ -1224,7 +1232,7 @@ class _UserScreenState extends State<UserScreen> {
         .collection('tokens')
         .document(fcmToken)
         .delete();
-    await _auth.signOut().whenComplete(() =>
+    _auth.signOut().whenComplete(() =>
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false));
   }
 
@@ -2187,7 +2195,7 @@ class _PrivateChatState extends State<PrivateChat> {
 
   void _removeBool() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.remove('bool');
+    preferences.remove('bool');
     String uid = currentUser;
     String fcmToken = await _fcm.getToken();
     await databaseReference
@@ -2196,6 +2204,6 @@ class _PrivateChatState extends State<PrivateChat> {
         .collection('tokens')
         .document(fcmToken)
         .delete();
-    await _auth.signOut().whenComplete(() => SystemNavigator.pop());
+     _auth.signOut().whenComplete(() => SystemNavigator.pop());
   }
 }
