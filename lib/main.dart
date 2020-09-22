@@ -570,7 +570,7 @@ class _UserScreenState extends State<UserScreen> {
   @override
   void initState() {
     super.initState();
-    blackTheme=true;
+    blackTheme = true;
     limit = 10;
     _scrollController.addListener(_scrollListener);
 
@@ -862,7 +862,7 @@ class _UserScreenState extends State<UserScreen> {
         body: DecoratedBox(
           position: DecorationPosition.background,
           decoration: BoxDecoration(
-            color:  blackTheme == true ? Colors.black : Colors.grey,
+            color: blackTheme == true ? Colors.black : Colors.grey,
           ),
           child: Container(
             padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
@@ -887,29 +887,35 @@ class _UserScreenState extends State<UserScreen> {
                               snapshot.data.documents[index]['photoUrl'];
                           final int newMessage =
                               snapshot.data.documents[index]['newMessage'];
+                         final  String userFormatted =
+                          user.substring(0, user.indexOf('@'));
 
-                          return Stack(
+                          return Column(
                             children: <Widget>[
-                              user != currentUser
-                                  ? SizedBox(
-                                      height: 100,
-                                      width: 100,
-                                      child: Card(
-                                        shape: RoundedRectangleBorder(
-                                          side: BorderSide(
-                                              color: Colors.white70, width: 1),
-                                          borderRadius:
-                                              BorderRadius.circular(100),
-                                        ),
-                                        elevation: 6,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              user2 = user;
-                                              userClickedInUserScreen = user;
-                                            });
+                              Stack(
+                                children: <Widget>[
+                                  user != currentUser
+                                      ? SizedBox(
+                                          height: 80,
+                                          width: 80,
+                                          child: Card(
+                                            shape: RoundedRectangleBorder(
+                                              side: BorderSide(
+                                                  color: Colors.white70,
+                                                  width: 1),
+                                              borderRadius:
+                                                  BorderRadius.circular(100),
+                                            ),
+                                            elevation: 6,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  user2 = user;
+                                                  userClickedInUserScreen =
+                                                      user;
+                                                });
 
-                                            /*
+                                                /*
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -922,47 +928,57 @@ class _UserScreenState extends State<UserScreen> {
                                       );
 
                                        */
-                                            Navigator.push(
-                                                context,
-                                                new MaterialPageRoute(
-                                                    builder: (BuildContext
-                                                            context) =>
-                                                        new PrivateChat(
-                                                            userClickedInUserScreen)));
-                                          },
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(100.0),
-                                            child: CachedNetworkImage(
-                                              fit: BoxFit.cover,
-                                              imageUrl: photoUrl,
-                                              placeholder: (context, url) =>
-                                                  CircularProgressIndicator(),
-                                              fadeOutDuration: const Duration(
-                                                  milliseconds: 300),
-                                              fadeInDuration: const Duration(
-                                                  milliseconds: 300),
+                                                Navigator.push(
+                                                    context,
+                                                    new MaterialPageRoute(
+                                                        builder: (BuildContext
+                                                                context) =>
+                                                            new PrivateChat(
+                                                                userClickedInUserScreen)));
+                                              },
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        100.0),
+                                                child: CachedNetworkImage(
+                                                  fit: BoxFit.cover,
+                                                  imageUrl: photoUrl,
+                                                  placeholder: (context, url) =>
+                                                      CircularProgressIndicator(),
+                                                  fadeOutDuration:
+                                                      const Duration(
+                                                          milliseconds: 300),
+                                                  fadeInDuration:
+                                                      const Duration(
+                                                          milliseconds: 300),
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    )
-                                  : new Container(),
-                              currentUser != user && newMessage != 0
-                                  ? new Positioned(
-                                      bottom: 0.0,
-                                      right: 8.0,
-                                      child: new Card(
-                                        color: Colors.white,
-                                        child: Text(
-                                          newMessage.toString(),
-                                          style: TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.lightBlue),
-                                        ),
-                                      ))
-                                  : new Container(),
+                                        )
+                                      : new Container(),
+                                  currentUser != user && newMessage != 0
+                                      ? new Positioned(
+                                          bottom: 0.0,
+                                          right: 8.0,
+                                          child: new Card(
+                                            color: Colors.white,
+                                            child: Text(
+                                              newMessage.toString(),
+                                              style: TextStyle(
+                                                  fontSize: 22,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.lightBlue),
+                                            ),
+                                          ))
+                                      : new Container(),
+                                ],
+                              ),
+                              currentUser != user ?Container(
+                                margin: EdgeInsets.only(top: 2,bottom: 2),
+                                child:
+                                Text(userFormatted,style: TextStyle(fontWeight: FontWeight.bold, color:Colors.white),),
+                              ):new Container(),
                             ],
                           );
                         },
@@ -1055,8 +1071,15 @@ class _UserScreenState extends State<UserScreen> {
                                         ),
                                       ),
                                     )
-                                  : GestureDetector(
-                                      child: Hero(
+                                  : Column(
+                                children: <Widget>[
+                                  GestureDetector(
+                                    child: Hero(
+                                      //   child: Card( shape: RoundedRectangleBorder(
+                                      //  borderRadius: BorderRadius.circular(25.0),
+                                      // ),
+                                      child:Container(
+                                        padding: EdgeInsets.all(10),
                                         child: CachedNetworkImage(
                                           //height: 250,
                                           fit: BoxFit.cover,
@@ -1064,26 +1087,31 @@ class _UserScreenState extends State<UserScreen> {
                                           placeholder: (context, url) =>
                                               LinearProgressIndicator(),
                                           fadeOutDuration:
-                                              const Duration(milliseconds: 300),
+                                          const Duration(milliseconds: 300),
                                           fadeInDuration:
-                                              const Duration(milliseconds: 300),
+                                          const Duration(milliseconds: 300),
                                         ),
-                                        tag: downloadUrl,
                                       ),
-                                      onTap: () {
-                                        Toast.show(
-                                            'long press to save image', context,
-                                            duration: Toast.LENGTH_SHORT,
-                                            gravity: Toast.BOTTOM);
-                                        setState(() {
-                                          heroUrl = downloadUrl;
-                                        });
-                                        Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) {
-                                          return DetailScreen();
-                                        }));
-                                      },
+                                      //     ),
+                                      tag: downloadUrl,
                                     ),
+                                    onTap: () {
+                                      Toast.show(
+                                          'long press to save image', context,
+                                          duration: Toast.LENGTH_SHORT,
+                                          gravity: Toast.BOTTOM);
+                                      setState(() {
+                                        heroUrl = downloadUrl;
+                                      });
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (_) {
+                                            return DetailScreen();
+                                          }));
+                                    },
+                                  ),
+                                  Text('sent by $userFormatted on $timestamp' ,style: TextStyle(fontWeight: FontWeight.bold),)
+                                ],
+                              )
                             ),
                             key: UniqueKey(),
                           );
@@ -1092,7 +1120,6 @@ class _UserScreenState extends State<UserScreen> {
                     },
                   ),
                 ),
-
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -1101,7 +1128,7 @@ class _UserScreenState extends State<UserScreen> {
                       child: GestureDetector(
                         onDoubleTap: _changeIcon,
                         child: Container(
-                          margin: EdgeInsets.only(left: 5, right: 5, top:5),
+                          margin: EdgeInsets.only(left: 5, right: 5, top: 5),
                           child: ClipRRect(
                             borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(20.0),
@@ -1680,7 +1707,7 @@ class _PrivateChatState extends State<PrivateChat> {
         body: DecoratedBox(
           position: DecorationPosition.background,
           decoration: BoxDecoration(
-            color:  blackTheme == true ? Colors.black : Colors.grey,
+            color: blackTheme == true ? Colors.black : Colors.grey,
           ),
           child: Container(
             padding: EdgeInsets.only(left: 5, right: 5, bottom: 10),
@@ -1785,9 +1812,15 @@ class _PrivateChatState extends State<PrivateChat> {
                                         ),
                                       ),
                                     )
-                                  : GestureDetector(
-                                      child: Hero(
-                                        tag: downloadUrl,
+                                  : Column(
+                                children: <Widget>[
+                                  GestureDetector(
+                                    child: Hero(
+                                      //   child: Card( shape: RoundedRectangleBorder(
+                                      //  borderRadius: BorderRadius.circular(25.0),
+                                      // ),
+                                      child:Container(
+                                        padding: EdgeInsets.all(10),
                                         child: CachedNetworkImage(
                                           //height: 250,
                                           fit: BoxFit.cover,
@@ -1795,21 +1828,31 @@ class _PrivateChatState extends State<PrivateChat> {
                                           placeholder: (context, url) =>
                                               LinearProgressIndicator(),
                                           fadeOutDuration:
-                                              const Duration(milliseconds: 300),
+                                          const Duration(milliseconds: 300),
                                           fadeInDuration:
-                                              const Duration(milliseconds: 300),
+                                          const Duration(milliseconds: 300),
                                         ),
                                       ),
-                                      onTap: () {
-                                        setState(() {
-                                          heroUrl = downloadUrl;
-                                        });
-                                        Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) {
-                                          return DetailScreen();
-                                        }));
-                                      },
+                                      //     ),
+                                      tag: downloadUrl,
                                     ),
+                                    onTap: () {
+                                      Toast.show(
+                                          'long press to save image', context,
+                                          duration: Toast.LENGTH_SHORT,
+                                          gravity: Toast.BOTTOM);
+                                      setState(() {
+                                        heroUrl = downloadUrl;
+                                      });
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (_) {
+                                            return DetailScreen();
+                                          }));
+                                    },
+                                  ),
+                                  Text('sent by $userFormatted on $timestamp' ,style: TextStyle(fontWeight: FontWeight.bold),)
+                                ],
+                              )
                             ),
                             key: UniqueKey(),
                           );
@@ -1826,7 +1869,7 @@ class _PrivateChatState extends State<PrivateChat> {
                       child: GestureDetector(
                         onDoubleTap: _changeIcon,
                         child: Container(
-                          margin: EdgeInsets.only(left: 5, right: 5,top: 5),
+                          margin: EdgeInsets.only(left: 5, right: 5, top: 5),
                           child: ClipRRect(
                             borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(20.0),
