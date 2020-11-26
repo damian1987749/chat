@@ -176,17 +176,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: <Widget>[
                 _image != null
                     ? GestureDetector(
-                        onLongPress: chooseFile,
-                        child: Container(
-                          height: 100,
-                          width: 100,
-                          margin: EdgeInsets.only(bottom: 24),
-                          child: CircleAvatar(
-                            backgroundImage: new FileImage(File(_image.path)),
-                            radius: 200.0,
-                          ),
-                        ),
-                      )
+                  onLongPress: chooseFile,
+                  child: Container(
+                    height: 100,
+                    width: 100,
+                    margin: EdgeInsets.only(bottom: 24),
+                    child: CircleAvatar(
+                      backgroundImage: new FileImage(File(_image.path)),
+                      radius: 200.0,
+                    ),
+                  ),
+                )
                     : Container(),
                 ClipRRect(
                     borderRadius: BorderRadius.all(Radius.circular(40)),
@@ -209,7 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             color: Colors.grey[400],
                             child: TextField(
                               decoration:
-                                  InputDecoration(hintText: '   Email address'),
+                              InputDecoration(hintText: '   Email address'),
                               controller: myEmailController,
                             ),
                           )),
@@ -223,7 +223,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           color: Colors.grey[400],
                           child: TextField(
                             decoration:
-                                InputDecoration(hintText: '   Password'),
+                            InputDecoration(hintText: '   Password'),
                             controller: myPasswordController,
                             obscureText: true,
                           ),
@@ -240,24 +240,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
         floatingActionButton: _uploading == true
             ? CircularProgressIndicator()
             : FloatingActionButton.extended(
-                onPressed:
-                    _image != null ? _signUpWithEmailAndPassword : chooseFile,
-                tooltip: 'Register',
-                label: _image != null ? Text('register') : Text('pick image'),
-                icon: _image != null
-                    ? Icon(Icons.arrow_right)
-                    : Icon(Icons.image),
-              ), // This trailing comma makes auto-formatting nicer for build methods.
+          onPressed:
+          _image != null ? _signUpWithEmailAndPassword : chooseFile,
+          tooltip: 'Register',
+          label: _image != null ? Text('register') : Text('pick image'),
+          icon: _image != null
+              ? Icon(Icons.arrow_right)
+              : Icon(Icons.image),
+        ), // This trailing comma makes auto-formatting nicer for build methods.
       ),
     );
   }
 
   Future chooseFile() async {
     await ImagePicker.pickImage(
-            source: ImageSource.gallery,
-            maxHeight: 1080,
-            maxWidth: 1920,
-            imageQuality: 40)
+        source: ImageSource.gallery,
+        maxHeight: 1080,
+        maxWidth: 1920,
+        imageQuality: 40)
         .then((image) {
       setState(() {
         _image = image;
@@ -333,8 +333,6 @@ class _FirstScreenState extends State<FirstScreen> {
   void initState() {
     super.initState();
     /*
-
-
     _fcm.configure(
       onLaunch: (Map<String, dynamic> message) async {
         print("onResume: $message");
@@ -343,15 +341,12 @@ class _FirstScreenState extends State<FirstScreen> {
           user2=userToGoTo;
         });
         _privateEmail();
-
-
       },
       onResume: (Map<String, dynamic> message) async {
         print("onResume: $message");
         Navigator.pushNamed(context,'/privateChat');
       },
     );
-
      */
 
     _checkBool();
@@ -468,8 +463,8 @@ class _FirstScreenState extends State<FirstScreen> {
                               _success == null
                                   ? ''
                                   : (_success
-                                      ? 'Successfully signed in ' + _userEmail
-                                      : 'Sign in failed'),
+                                  ? 'Successfully signed in ' + _userEmail
+                                  : 'Sign in failed'),
                               style: TextStyle(color: Colors.red),
                             ),
                           ),
@@ -603,7 +598,6 @@ class _UserScreenState extends State<UserScreen> {
     );
     _checkUser();
     /* _fcm.configure(
-
       onMessage: (Map<String, dynamic> message) async {
         print("onMessage: $message");
         showDialog(
@@ -622,8 +616,6 @@ class _UserScreenState extends State<UserScreen> {
           ),
         );
       },
-
-
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");
         Navigator.pushNamed(context,'/privateChat');
@@ -632,16 +624,13 @@ class _UserScreenState extends State<UserScreen> {
         print("onResume: $message");
         Navigator.pushNamed(context, '/privateChat');
       },
-
-
     );
-
      */
   }
 
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       print("at the end of list");
       setState(() {
@@ -775,11 +764,11 @@ class _UserScreenState extends State<UserScreen> {
                           isSwitched = value;
                           isSwitched == true
                               ? Toast.show("Notifications on", context,
-                                  duration: Toast.LENGTH_SHORT,
-                                  gravity: Toast.TOP)
+                              duration: Toast.LENGTH_SHORT,
+                              gravity: Toast.TOP)
                               : Toast.show('Notifications off', context,
-                                  duration: Toast.LENGTH_SHORT,
-                                  gravity: Toast.TOP);
+                              duration: Toast.LENGTH_SHORT,
+                              gravity: Toast.TOP);
                           isSwitched == true
                               ? _fcm.subscribeToTopic('notifications')
                               : _fcm.unsubscribeFromTopic('notifications');
@@ -810,63 +799,63 @@ class _UserScreenState extends State<UserScreen> {
         ),
         drawer: Drawer(
             child: Container(
-          color: Colors.grey[200],
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            // Important: Remove any padding from the ListView.
-            //padding: EdgeInsets.zero,
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(top: 50),
-                child: Text(
-                  'Logged in as $currentUser',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
-              GestureDetector(
-                onLongPress: _pickImage,
-                child: Container(
-                    margin: EdgeInsets.only(top: 48),
-                    height: 160,
-                    width: 160,
-                    child: avatarUrl != null
-                        ? CircleAvatar(
-                            backgroundImage: NetworkImage(avatarUrl),
-                            radius: 90,
-                          )
-                        : CircleAvatar(
+              color: Colors.grey[200],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                // Important: Remove any padding from the ListView.
+                //padding: EdgeInsets.zero,
+                children: <Widget>[
+                  Container(
+                    margin: EdgeInsets.only(top: 50),
+                    child: Text(
+                      'Logged in as $currentUser',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  GestureDetector(
+                    onLongPress: _pickImage,
+                    child: Container(
+                        margin: EdgeInsets.only(top: 48),
+                        height: 160,
+                        width: 160,
+                        child: avatarUrl != null
+                            ? CircleAvatar(
+                          backgroundImage: NetworkImage(avatarUrl),
+                          radius: 90,
+                        )
+                            : CircleAvatar(
                             backgroundImage: AssetImage('Login.jpg'))),
+                  ),
+                  Center(
+                    child: Container(
+                        margin: EdgeInsets.only(top: 48),
+                        child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _changeTheme();
+                              });
+                            },
+                            child: Text(
+                              'Change theme',
+                              style: TextStyle(fontSize: 20),
+                            ))),
+                  ),
+                  Center(
+                    child: Container(
+                        margin: EdgeInsets.only(top: 48),
+                        child: GestureDetector(
+                            onTap: () {
+                              showAlertDelete(context);
+                            },
+                            child: Text(
+                              'Delete profile',
+                              style: TextStyle(fontSize: 20, color: Colors.red),
+                            ))),
+                  ),
+                ],
               ),
-              Center(
-                child: Container(
-                    margin: EdgeInsets.only(top: 48),
-                    child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _changeTheme();
-                          });
-                        },
-                        child: Text(
-                          'Change theme',
-                          style: TextStyle(fontSize: 20),
-                        ))),
-              ),
-              Center(
-                child: Container(
-                    margin: EdgeInsets.only(top: 48),
-                    child: GestureDetector(
-                        onTap: () {
-                          showAlertDelete(context);
-                        },
-                        child: Text(
-                          'Delete profile',
-                          style: TextStyle(fontSize: 20, color: Colors.red),
-                        ))),
-              ),
-            ],
-          ),
-        )),
+            )),
         body: DecoratedBox(
           position: DecorationPosition.background,
           decoration: BoxDecoration(
@@ -890,12 +879,12 @@ class _UserScreenState extends State<UserScreen> {
                         itemCount: snapshot.data.documents.length,
                         itemBuilder: (context, index) {
                           final user =
-                              snapshot.data.documents[index]['user'].toString();
+                          snapshot.data.documents[index]['user'].toString();
                           final String photoUrl =
-                              snapshot.data.documents[index]['photoUrl'];
+                          snapshot.data.documents[index]['photoUrl'];
                           final int newMessage =
-                              snapshot.data.documents[index]['newMessage'];
-                         final  String userFormatted =
+                          snapshot.data.documents[index]['newMessage'];
+                          final  String userFormatted =
                           user.substring(0, user.indexOf('@'));
 
                           return Column(
@@ -904,26 +893,26 @@ class _UserScreenState extends State<UserScreen> {
                                 children: <Widget>[
                                   user != currentUser
                                       ? SizedBox(
-                                          height: 80,
-                                          width: 80,
-                                          child: Card(
-                                            shape: RoundedRectangleBorder(
-                                              side: BorderSide(
-                                                  color: Colors.white70,
-                                                  width: 1),
-                                              borderRadius:
-                                                  BorderRadius.circular(100),
-                                            ),
-                                            elevation: 6,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  user2 = user;
-                                                  userClickedInUserScreen =
-                                                      user;
-                                                });
+                                    height: 80,
+                                    width: 80,
+                                    child: Card(
+                                      shape: RoundedRectangleBorder(
+                                        side: BorderSide(
+                                            color: Colors.white70,
+                                            width: 1),
+                                        borderRadius:
+                                        BorderRadius.circular(100),
+                                      ),
+                                      elevation: 6,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            user2 = user;
+                                            userClickedInUserScreen =
+                                                user;
+                                          });
 
-                                                /*
+                                          /*
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -934,51 +923,50 @@ class _UserScreenState extends State<UserScreen> {
                                           ),
                                         ),
                                       );
-
                                        */
-                                                Navigator.push(
-                                                    context,
-                                                    new MaterialPageRoute(
-                                                        builder: (BuildContext
-                                                                context) =>
-                                                            new PrivateChat(
-                                                                userClickedInUserScreen)));
-                                              },
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        100.0),
-                                                child: CachedNetworkImage(
-                                                  fit: BoxFit.cover,
-                                                  imageUrl: photoUrl,
-                                                  placeholder: (context, url) =>
-                                                      CircularProgressIndicator(),
-                                                  fadeOutDuration:
-                                                      const Duration(
-                                                          milliseconds: 300),
-                                                  fadeInDuration:
-                                                      const Duration(
-                                                          milliseconds: 300),
-                                                ),
-                                              ),
-                                            ),
+                                          Navigator.push(
+                                              context,
+                                              new MaterialPageRoute(
+                                                  builder: (BuildContext
+                                                  context) =>
+                                                  new PrivateChat(
+                                                      userClickedInUserScreen)));
+                                        },
+                                        child: ClipRRect(
+                                          borderRadius:
+                                          BorderRadius.circular(
+                                              100.0),
+                                          child: CachedNetworkImage(
+                                            fit: BoxFit.cover,
+                                            imageUrl: photoUrl,
+                                            placeholder: (context, url) =>
+                                                CircularProgressIndicator(),
+                                            fadeOutDuration:
+                                            const Duration(
+                                                milliseconds: 300),
+                                            fadeInDuration:
+                                            const Duration(
+                                                milliseconds: 300),
                                           ),
-                                        )
+                                        ),
+                                      ),
+                                    ),
+                                  )
                                       : new Container(),
                                   currentUser != user && newMessage != 0
                                       ? new Positioned(
-                                          bottom: 0.0,
-                                          right: 8.0,
-                                          child: new Card(
-                                            color: Colors.white,
-                                            child: Text(
-                                              newMessage.toString(),
-                                              style: TextStyle(
-                                                  fontSize: 22,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.lightBlue),
-                                            ),
-                                          ))
+                                      bottom: 0.0,
+                                      right: 8.0,
+                                      child: new Card(
+                                        color: Colors.white,
+                                        child: Text(
+                                          newMessage.toString(),
+                                          style: TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.lightBlue),
+                                        ),
+                                      ))
                                       : new Container(),
                                 ],
                               ),
@@ -1013,18 +1001,18 @@ class _UserScreenState extends State<UserScreen> {
                               .data.documents[index]['message']
                               .toString();
                           final timestamp =
-                              snapshot.data.documents[index]['date'].toString();
+                          snapshot.data.documents[index]['date'].toString();
                           final user =
-                              snapshot.data.documents[index]['user'].toString();
+                          snapshot.data.documents[index]['user'].toString();
                           String userFormatted =
-                              user.substring(0, user.indexOf('@'));
+                          user.substring(0, user.indexOf('@'));
                           final itemID =
                               snapshot.data.documents[index].documentID;
                           final list = snapshot.data.documents;
                           final String photoUrl =
-                              snapshot.data.documents[index]['photoUrl'];
+                          snapshot.data.documents[index]['photoUrl'];
                           final String downloadUrl =
-                              snapshot.data.documents[index]['downloadUrl'];
+                          snapshot.data.documents[index]['downloadUrl'];
                           return Dismissible(
                             onDismissed: (direction) {
                               if (user == currentUser) {
@@ -1051,75 +1039,75 @@ class _UserScreenState extends State<UserScreen> {
                               }
                             },
                             child: Card(
-                              elevation: 5,
-                              margin: EdgeInsets.all(6),
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
-                              child: downloadUrl == ""
-                                  ? ListTile(
-                                      title: SelectableText(message),
-                                      subtitle: Text(userFormatted),
-                                      trailing: Text(timestamp),
-                                      leading: ClipRRect(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(100.0)),
-                                        child: CachedNetworkImage(
-                                          height: 50,
-                                          width: 50,
-                                          fit: BoxFit.cover,
-                                          imageUrl: photoUrl,
-                                          placeholder: (context, url) =>
-                                              CircularProgressIndicator(),
-                                          fadeOutDuration:
-                                              const Duration(milliseconds: 300),
-                                          fadeInDuration:
-                                              const Duration(milliseconds: 300),
-                                        ),
-                                      ),
-                                    )
-                                  : Column(
-                                children: <Widget>[
-                                  GestureDetector(
-                                    child: Hero(
-                                      //   child: Card( shape: RoundedRectangleBorder(
-                                      //  borderRadius: BorderRadius.circular(25.0),
-                                      // ),
-                                      child:Container(
-                                        padding: EdgeInsets.all(10),
-                                        child: CachedNetworkImage(
-                                          //height: 250,
-                                          fit: BoxFit.cover,
-                                          imageUrl: downloadUrl,
-                                          placeholder: (context, url) =>
-                                              LinearProgressIndicator(),
-                                          fadeOutDuration:
-                                          const Duration(milliseconds: 300),
-                                          fadeInDuration:
-                                          const Duration(milliseconds: 300),
-                                        ),
-                                      ),
-                                      //     ),
-                                      tag: downloadUrl,
+                                elevation: 5,
+                                margin: EdgeInsets.all(6),
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                ),
+                                child: downloadUrl == ""
+                                    ? ListTile(
+                                  title: SelectableText(message),
+                                  subtitle: Text(userFormatted),
+                                  trailing: Text(timestamp),
+                                  leading: ClipRRect(
+                                    borderRadius: BorderRadius.all(
+                                        Radius.circular(100.0)),
+                                    child: CachedNetworkImage(
+                                      height: 50,
+                                      width: 50,
+                                      fit: BoxFit.cover,
+                                      imageUrl: photoUrl,
+                                      placeholder: (context, url) =>
+                                          CircularProgressIndicator(),
+                                      fadeOutDuration:
+                                      const Duration(milliseconds: 300),
+                                      fadeInDuration:
+                                      const Duration(milliseconds: 300),
                                     ),
-                                    onTap: () {
-                                      Toast.show(
-                                          'long press to save image', context,
-                                          duration: Toast.LENGTH_SHORT,
-                                          gravity: Toast.BOTTOM);
-                                      setState(() {
-                                        heroUrl = downloadUrl;
-                                      });
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (_) {
-                                            return DetailScreen();
-                                          }));
-                                    },
                                   ),
-                                  Text('sent by $userFormatted on $timestamp' ,style: TextStyle(fontWeight: FontWeight.bold),)
-                                ],
-                              )
+                                )
+                                    : Column(
+                                  children: <Widget>[
+                                    GestureDetector(
+                                      child: Hero(
+                                        //   child: Card( shape: RoundedRectangleBorder(
+                                        //  borderRadius: BorderRadius.circular(25.0),
+                                        // ),
+                                        child:Container(
+                                          padding: EdgeInsets.all(10),
+                                          child: CachedNetworkImage(
+                                            //height: 250,
+                                            fit: BoxFit.cover,
+                                            imageUrl: downloadUrl,
+                                            placeholder: (context, url) =>
+                                                LinearProgressIndicator(),
+                                            fadeOutDuration:
+                                            const Duration(milliseconds: 300),
+                                            fadeInDuration:
+                                            const Duration(milliseconds: 300),
+                                          ),
+                                        ),
+                                        //     ),
+                                        tag: downloadUrl,
+                                      ),
+                                      onTap: () {
+                                        Toast.show(
+                                            'long press to save image', context,
+                                            duration: Toast.LENGTH_SHORT,
+                                            gravity: Toast.BOTTOM);
+                                        setState(() {
+                                          heroUrl = downloadUrl;
+                                        });
+                                        Navigator.push(context,
+                                            MaterialPageRoute(builder: (_) {
+                                              return DetailScreen();
+                                            }));
+                                      },
+                                    ),
+                                    Text('sent by $userFormatted on $timestamp' ,style: TextStyle(fontWeight: FontWeight.bold),)
+                                  ],
+                                )
                             ),
                             key: UniqueKey(),
                           );
@@ -1163,51 +1151,51 @@ class _UserScreenState extends State<UserScreen> {
                     ),
                     _uploading == false
                         ? Column(
-                            children: <Widget>[
-                              _imageIcon == false || _image != null
-                                  ? FloatingActionButton.extended(
-                                      heroTag: 'btn2',
-                                      backgroundColor: Colors.grey[800],
-                                      icon: Icon(Icons.send),
-                                      label: Text('send'),
-                                      elevation: 5,
-                                      tooltip: 'send',
-                                      onPressed: () {
-                                        _scrollController.animateTo(
-                                          0.0,
-                                          curve: Curves.easeOut,
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                        );
-                                        if (_image != null) {
-                                          setState(() {
-                                            _uploading = true;
-                                          });
-                                          _uploadAndSave();
-                                          // _clearImage();
+                      children: <Widget>[
+                        _imageIcon == false || _image != null
+                            ? FloatingActionButton.extended(
+                          heroTag: 'btn2',
+                          backgroundColor: Colors.grey[800],
+                          icon: Icon(Icons.send),
+                          label: Text('send'),
+                          elevation: 5,
+                          tooltip: 'send',
+                          onPressed: () {
+                            _scrollController.animateTo(
+                              0.0,
+                              curve: Curves.easeOut,
+                              duration:
+                              const Duration(milliseconds: 300),
+                            );
+                            if (_image != null) {
+                              setState(() {
+                                _uploading = true;
+                              });
+                              _uploadAndSave();
+                              // _clearImage();
 
-                                        } else {
-                                          if (myController.text != '') {
-                                            _saveToFB();
-                                            myController.clear();
-                                          }
-                                        }
-                                      },
-                                    )
-                                  : FloatingActionButton.extended(
-                                      heroTag: 'btn1',
-                                      backgroundColor: Colors.grey[800],
-                                      icon: Icon(Icons.image),
-                                      label: Text('pick image'),
-                                      elevation: 5,
-                                      tooltip: 'pick image ',
-                                      onPressed: () {
-                                        chooseFile();
-                                        // Navigator.pushNamed(context, '/pickImage');
-                                      },
-                                    )
-                            ],
-                          )
+                            } else {
+                              if (myController.text != '') {
+                                _saveToFB();
+                                myController.clear();
+                              }
+                            }
+                          },
+                        )
+                            : FloatingActionButton.extended(
+                          heroTag: 'btn1',
+                          backgroundColor: Colors.grey[800],
+                          icon: Icon(Icons.image),
+                          label: Text('pick image'),
+                          elevation: 5,
+                          tooltip: 'pick image ',
+                          onPressed: () {
+                            chooseFile();
+                            // Navigator.pushNamed(context, '/pickImage');
+                          },
+                        )
+                      ],
+                    )
                         : CircularProgressIndicator(),
                   ],
                 ),
@@ -1223,7 +1211,7 @@ class _UserScreenState extends State<UserScreen> {
 
   _removeBool() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-     preferences.remove('bool');
+    preferences.remove('bool');
     String uid = currentUser;
     String fcmToken = await _fcm.getToken();
     await databaseReference
@@ -1334,8 +1322,6 @@ class _UserScreenState extends State<UserScreen> {
         'photoUrl': avataarUrl,
         'newMessage': 0,
       });
-
-
     });
     */
   }
@@ -1370,10 +1356,10 @@ class _UserScreenState extends State<UserScreen> {
 
   Future chooseFile() async {
     await ImagePicker.pickImage(
-            source: ImageSource.gallery,
-            maxHeight: 1080,
-            maxWidth: 1920,
-            imageQuality: 40)
+        source: ImageSource.gallery,
+        maxHeight: 1080,
+        maxWidth: 1920,
+        imageQuality: 40)
         .then((image) {
       setState(() {
         _image = image;
@@ -1413,10 +1399,10 @@ class _UserScreenState extends State<UserScreen> {
 
   void _pickImage() async {
     await ImagePicker.pickImage(
-            source: ImageSource.gallery,
-            maxHeight: 1080,
-            maxWidth: 1920,
-            imageQuality: 40)
+        source: ImageSource.gallery,
+        maxHeight: 1080,
+        maxWidth: 1920,
+        imageQuality: 40)
         .then((image) {
       setState(() {
         _image = image;
@@ -1458,13 +1444,13 @@ class _UserScreenState extends State<UserScreen> {
         .document(currentUser)
         .setData({'photoUrl': avatarUrl, 'newMessage': 0, 'user': currentUser})
         .whenComplete(() => setState(() {
-              _image = null;
-              _imageIcon = false;
-              _uploadedFileURL = '';
-              _uploading = false;
-            }))
+      _image = null;
+      _imageIcon = false;
+      _uploadedFileURL = '';
+      _uploading = false;
+    }))
         .whenComplete(() => Toast.show('Profile picture changed', context,
-            duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM));
+        duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM));
   }
 
   _showToastAndClearPersistence() async {
@@ -1550,7 +1536,6 @@ class _PrivateChatState extends State<PrivateChat> {
         .snapshots();
 
     /*
-
     _fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
         print("onMessage: $message");
@@ -1578,10 +1563,7 @@ class _PrivateChatState extends State<PrivateChat> {
         print("onResume: $message");
         Navigator.pushNamed(context,'/privateChat');
       },
-
-
     );
-
      */
   }
 
@@ -1593,7 +1575,7 @@ class _PrivateChatState extends State<PrivateChat> {
 
   void _scrollListener() {
     if (_scrollController.offset >=
-            _scrollController.position.maxScrollExtent &&
+        _scrollController.position.maxScrollExtent &&
         !_scrollController.position.outOfRange) {
       print("at the end of list");
       setState(() {
@@ -1690,11 +1672,11 @@ class _PrivateChatState extends State<PrivateChat> {
                           isSwitched = value;
                           isSwitched == true
                               ? Toast.show("Notifications on", context,
-                                  duration: Toast.LENGTH_SHORT,
-                                  gravity: Toast.TOP)
+                              duration: Toast.LENGTH_SHORT,
+                              gravity: Toast.TOP)
                               : Toast.show('Notifications off', context,
-                                  duration: Toast.LENGTH_SHORT,
-                                  gravity: Toast.TOP);
+                              duration: Toast.LENGTH_SHORT,
+                              gravity: Toast.TOP);
                         });
                       },
                       activeTrackColor: Colors.lightGreenAccent,
@@ -1754,18 +1736,18 @@ class _PrivateChatState extends State<PrivateChat> {
                               .data.documents[index]['message']
                               .toString();
                           final timestamp =
-                              snapshot.data.documents[index]['date'].toString();
+                          snapshot.data.documents[index]['date'].toString();
                           final user =
-                              snapshot.data.documents[index]['user'].toString();
+                          snapshot.data.documents[index]['user'].toString();
                           String userFormatted =
-                              user.substring(0, user.indexOf('@'));
+                          user.substring(0, user.indexOf('@'));
                           final itemID =
                               snapshot.data.documents[index].documentID;
                           final list = snapshot.data.documents;
                           final String photoUrl =
-                              snapshot.data.documents[index]['photoUrl'];
+                          snapshot.data.documents[index]['photoUrl'];
                           final String downloadUrl =
-                              snapshot.data.documents[index]['downloadUrl'];
+                          snapshot.data.documents[index]['downloadUrl'];
                           // final int colorBlue = snapshot
                           //    .data.documents[reversedIndex]['colorBlue'];
                           // final int colorRed = snapshot
@@ -1798,75 +1780,75 @@ class _PrivateChatState extends State<PrivateChat> {
                               }
                             },
                             child: Card(
-                              elevation: 5,
-                              margin: EdgeInsets.all(6),
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
-                              child: downloadUrl == ""
-                                  ? ListTile(
-                                      title: Text(message),
-                                      subtitle: Text(userFormatted),
-                                      trailing: Text(timestamp),
-                                      leading: ClipRRect(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(100.0)),
-                                        child: CachedNetworkImage(
-                                          height: 50,
-                                          width: 50,
-                                          fit: BoxFit.cover,
-                                          imageUrl: photoUrl,
-                                          placeholder: (context, url) =>
-                                              CircularProgressIndicator(),
-                                          fadeOutDuration:
-                                              const Duration(milliseconds: 300),
-                                          fadeInDuration:
-                                              const Duration(milliseconds: 300),
-                                        ),
-                                      ),
-                                    )
-                                  : Column(
-                                children: <Widget>[
-                                  GestureDetector(
-                                    child: Hero(
-                                      //   child: Card( shape: RoundedRectangleBorder(
-                                      //  borderRadius: BorderRadius.circular(25.0),
-                                      // ),
-                                      child:Container(
-                                        padding: EdgeInsets.all(10),
-                                        child: CachedNetworkImage(
-                                          //height: 250,
-                                          fit: BoxFit.cover,
-                                          imageUrl: downloadUrl,
-                                          placeholder: (context, url) =>
-                                              LinearProgressIndicator(),
-                                          fadeOutDuration:
-                                          const Duration(milliseconds: 300),
-                                          fadeInDuration:
-                                          const Duration(milliseconds: 300),
-                                        ),
-                                      ),
-                                      //     ),
-                                      tag: downloadUrl,
+                                elevation: 5,
+                                margin: EdgeInsets.all(6),
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25.0),
+                                ),
+                                child: downloadUrl == ""
+                                    ? ListTile(
+                                  title: Text(message),
+                                  subtitle: Text(userFormatted),
+                                  trailing: Text(timestamp),
+                                  leading: ClipRRect(
+                                    borderRadius: BorderRadius.all(
+                                        Radius.circular(100.0)),
+                                    child: CachedNetworkImage(
+                                      height: 50,
+                                      width: 50,
+                                      fit: BoxFit.cover,
+                                      imageUrl: photoUrl,
+                                      placeholder: (context, url) =>
+                                          CircularProgressIndicator(),
+                                      fadeOutDuration:
+                                      const Duration(milliseconds: 300),
+                                      fadeInDuration:
+                                      const Duration(milliseconds: 300),
                                     ),
-                                    onTap: () {
-                                      Toast.show(
-                                          'long press to save image', context,
-                                          duration: Toast.LENGTH_SHORT,
-                                          gravity: Toast.BOTTOM);
-                                      setState(() {
-                                        heroUrl = downloadUrl;
-                                      });
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (_) {
-                                            return DetailScreen();
-                                          }));
-                                    },
                                   ),
-                                  Text('sent by $userFormatted on $timestamp' ,style: TextStyle(fontWeight: FontWeight.bold),)
-                                ],
-                              )
+                                )
+                                    : Column(
+                                  children: <Widget>[
+                                    GestureDetector(
+                                      child: Hero(
+                                        //   child: Card( shape: RoundedRectangleBorder(
+                                        //  borderRadius: BorderRadius.circular(25.0),
+                                        // ),
+                                        child:Container(
+                                          padding: EdgeInsets.all(10),
+                                          child: CachedNetworkImage(
+                                            //height: 250,
+                                            fit: BoxFit.cover,
+                                            imageUrl: downloadUrl,
+                                            placeholder: (context, url) =>
+                                                LinearProgressIndicator(),
+                                            fadeOutDuration:
+                                            const Duration(milliseconds: 300),
+                                            fadeInDuration:
+                                            const Duration(milliseconds: 300),
+                                          ),
+                                        ),
+                                        //     ),
+                                        tag: downloadUrl,
+                                      ),
+                                      onTap: () {
+                                        Toast.show(
+                                            'long press to save image', context,
+                                            duration: Toast.LENGTH_SHORT,
+                                            gravity: Toast.BOTTOM);
+                                        setState(() {
+                                          heroUrl = downloadUrl;
+                                        });
+                                        Navigator.push(context,
+                                            MaterialPageRoute(builder: (_) {
+                                              return DetailScreen();
+                                            }));
+                                      },
+                                    ),
+                                    Text('sent by $userFormatted on $timestamp' ,style: TextStyle(fontWeight: FontWeight.bold),)
+                                  ],
+                                )
                             ),
                             key: UniqueKey(),
                           );
@@ -1910,53 +1892,53 @@ class _PrivateChatState extends State<PrivateChat> {
                     ),
                     _uploading == false
                         ? Column(
-                            children: <Widget>[
-                              _imageIcon == false || _image != null
-                                  ? FloatingActionButton.extended(
-                                      heroTag: 'btn2',
-                                      backgroundColor: Colors.grey[800],
-                                      icon: Icon(Icons.send),
-                                      label: Text('send'),
-                                      elevation: 5,
-                                      tooltip: 'send',
-                                      onPressed: () {
-                                        _scrollController.animateTo(
-                                          0.0,
-                                          curve: Curves.easeOut,
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                        );
-                                        if (_image != null) {
-                                          setState(() {
-                                            _uploading = true;
-                                          });
-                                          _uploadAndSave();
-                                          _incrementNewMessage();
-                                          // _clearImage();
+                      children: <Widget>[
+                        _imageIcon == false || _image != null
+                            ? FloatingActionButton.extended(
+                          heroTag: 'btn2',
+                          backgroundColor: Colors.grey[800],
+                          icon: Icon(Icons.send),
+                          label: Text('send'),
+                          elevation: 5,
+                          tooltip: 'send',
+                          onPressed: () {
+                            _scrollController.animateTo(
+                              0.0,
+                              curve: Curves.easeOut,
+                              duration:
+                              const Duration(milliseconds: 300),
+                            );
+                            if (_image != null) {
+                              setState(() {
+                                _uploading = true;
+                              });
+                              _uploadAndSave();
+                              _incrementNewMessage();
+                              // _clearImage();
 
-                                        } else {
-                                          if (myController.text != '') {
-                                            _saveToFB();
-                                            _incrementNewMessage();
-                                            myController.clear();
-                                          }
-                                        }
-                                      },
-                                    )
-                                  : FloatingActionButton.extended(
-                                      heroTag: 'btn1',
-                                      backgroundColor: Colors.grey[800],
-                                      icon: Icon(Icons.image),
-                                      label: Text('pick image'),
-                                      elevation: 5,
-                                      tooltip: 'pick image',
-                                      onPressed: () {
-                                        chooseFile();
-                                        // Navigator.pushNamed(context, '/pickImage');
-                                      },
-                                    )
-                            ],
-                          )
+                            } else {
+                              if (myController.text != '') {
+                                _saveToFB();
+                                _incrementNewMessage();
+                                myController.clear();
+                              }
+                            }
+                          },
+                        )
+                            : FloatingActionButton.extended(
+                          heroTag: 'btn1',
+                          backgroundColor: Colors.grey[800],
+                          icon: Icon(Icons.image),
+                          label: Text('pick image'),
+                          elevation: 5,
+                          tooltip: 'pick image',
+                          onPressed: () {
+                            chooseFile();
+                            // Navigator.pushNamed(context, '/pickImage');
+                          },
+                        )
+                      ],
+                    )
                         : CircularProgressIndicator(),
                   ],
                 ),
@@ -2194,10 +2176,10 @@ class _PrivateChatState extends State<PrivateChat> {
 
   Future chooseFile() async {
     await ImagePicker.pickImage(
-            source: ImageSource.gallery,
-            maxHeight: 1080,
-            maxWidth: 1920,
-            imageQuality: 40)
+        source: ImageSource.gallery,
+        maxHeight: 1080,
+        maxWidth: 1920,
+        imageQuality: 40)
         .then((image) {
       setState(() {
         _image = image;
@@ -2216,6 +2198,6 @@ class _PrivateChatState extends State<PrivateChat> {
         .collection('tokens')
         .document(fcmToken)
         .delete();
-     _auth.signOut().whenComplete(() => SystemNavigator.pop());
+    _auth.signOut().whenComplete(() => SystemNavigator.pop());
   }
 }
