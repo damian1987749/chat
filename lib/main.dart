@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:photo_view/photo_view.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,7 +17,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as Path;
 import 'dart:io';
 
-import 'package:translit/translit.dart';
+
 
 String heroUrl;
 String avatarUrl;
@@ -42,17 +42,27 @@ void main() {
   ));
 }
 
-class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatefulWidget {
+  @override
+  _DetailScreenState createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       body: GestureDetector(
         child: Center(
           child: Hero(
             tag: heroUrl,
-            child: Image.network(
-              heroUrl,
+            child: PhotoView(
+            imageProvider: NetworkImage(heroUrl)
+
+
             ),
+
           ),
         ),
         onLongPress: () async {
@@ -288,15 +298,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _signUpWithEmailAndPassword() async {
-    String passwordTranslited = myPasswordController.text;
-    String unTranslitedPassword = Translit().unTranslit(source: passwordTranslited);
+
     setState(() {
       _uploading = true;
     });
 
     final FirebaseUser user = (await _auth.createUserWithEmailAndPassword(
       email: myEmailController.text,
-      password: unTranslitedPassword,
+      password: myPasswordController.text,
     ))
         .user;
     if (user != null) {
@@ -489,11 +498,9 @@ class _FirstScreenState extends State<FirstScreen> {
   }
 
   void _signInWithEmailAndPassword() async {
-    String passwordTranslited = _passwordController.text;
-    String unTranslitedPassword = Translit().unTranslit(source: passwordTranslited);
     final FirebaseUser user = (await _auth.signInWithEmailAndPassword(
       email: _emailController.text,
-      password: unTranslitedPassword,
+      password: _passwordController.text,
     ))
         .user;
     if (user != null) {
@@ -754,7 +761,7 @@ class _UserScreenState extends State<UserScreen> {
           */
 
             Padding(
-                padding: EdgeInsets.only(right: 30.0, top: 10, bottom: 5),
+                padding: EdgeInsets.only(right: 30.0, top: 10, bottom: 3),
                 child: Row(
                   children: <Widget>[
                     Switch(
@@ -866,7 +873,7 @@ class _UserScreenState extends State<UserScreen> {
             child: Column(
               children: <Widget>[
                 Container(
-                  height: 100,
+                  height: 105,
                   width: double.infinity,
                   child: StreamBuilder<QuerySnapshot>(
                     stream: userStream,
@@ -1662,7 +1669,7 @@ class _PrivateChatState extends State<PrivateChat> {
             ),
           */
             Padding(
-                padding: EdgeInsets.only(right: 30.0, top: 10, bottom: 5),
+                padding: EdgeInsets.only(right: 30.0, top: 10, bottom: 3),
                 child: Row(
                   children: <Widget>[
                     Switch(
