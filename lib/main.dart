@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +18,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as Path;
 import 'dart:io';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'dart:isolate';
+import 'dart:math';
+import 'dart:ui';
+
+/// The name associated with the UI isolate's [SendPort].
+const String isolateName = 'isolate';
+
+/// A port used to communicate from a background isolate to the UI isolate.
+final ReceivePort port = ReceivePort();
 
 
 
@@ -24,7 +36,11 @@ String avatarUrl;
 var dio = Dio();
 bool blackTheme;
 
-void main() {
+void main() async{
+  IsolateNameServer.registerPortWithName(
+    port.sendPort,
+    isolateName,
+  );
   String userClickedInUserScreen;
   runApp(MaterialApp(
     title: 'Named Routes Demo',
@@ -558,11 +574,13 @@ class _UserScreenState extends State<UserScreen> {
   final FirebaseMessaging _fcm = FirebaseMessaging();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String currentUser = 'null';
+  int _alarmColor;
   ScrollController _scrollController = new ScrollController();
   Stream<QuerySnapshot> mainStream;
   Stream<QuerySnapshot> userStream;
   String user2 = 'null';
   String userClickedInUserScreen = 'null';
+  DateTime _dateTime;
 
   int newMessageCount = 0;
   bool isSwitched = false;
@@ -576,10 +594,15 @@ class _UserScreenState extends State<UserScreen> {
   int limit;
 
   String _userAvatar;
+  static SendPort uiSendPort;
 
   @override
   void initState() {
     super.initState();
+    AndroidAlarmManager.initialize();
+   
+
+
 
     limit = 30;
     _scrollController.addListener(_scrollListener);
@@ -1016,6 +1039,7 @@ class _UserScreenState extends State<UserScreen> {
                           final itemID =
                               snapshot.data.documents[index].documentID;
                           final list = snapshot.data.documents;
+                          final int color = snapshot.data.documents[index]['alarmColor'];
                           final String photoUrl =
                           snapshot.data.documents[index]['photoUrl'];
                           final String downloadUrl =
@@ -1048,32 +1072,45 @@ class _UserScreenState extends State<UserScreen> {
                             child: Card(
                                 elevation: 5,
                                 margin: EdgeInsets.all(6),
-                                color: Colors.white,
+                                color: color==null?Colors.white:Colors.red,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25.0),
                                 ),
                                 child: downloadUrl == ""
-                                    ? ListTile(
+                                    ? GestureDetector(
+                                  onLongPress: (){DatePicker.showDateTimePicker(context, showTitleActions: true, onChanged: (date) {
+                                    print('change $date in time zone ' + date.timeZoneOffset.inHours.toString());
+                                  }, onConfirm: (date) {
+                                    setState(() {
+                                      _dateTime=date;
+                                      _alarmColor=1;
+
+                                    });
+                                    _setAlarmManager(itemID);
+
+                                  }, currentTime: DateTime.now(), locale: LocaleType.en);},
+                                      child: ListTile(
                                   title: SelectableText(message),
                                   subtitle: Text(userFormatted),
                                   trailing: Text(timestamp),
                                   leading: ClipRRect(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(100.0)),
-                                    child: CachedNetworkImage(
-                                      height: 50,
-                                      width: 50,
-                                      fit: BoxFit.cover,
-                                      imageUrl: photoUrl,
-                                      placeholder: (context, url) =>
-                                          CircularProgressIndicator(),
-                                      fadeOutDuration:
-                                      const Duration(milliseconds: 300),
-                                      fadeInDuration:
-                                      const Duration(milliseconds: 300),
-                                    ),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(100.0)),
+                                      child: CachedNetworkImage(
+                                        height: 50,
+                                        width: 50,
+                                        fit: BoxFit.cover,
+                                        imageUrl: photoUrl,
+                                        placeholder: (context, url) =>
+                                            CircularProgressIndicator(),
+                                        fadeOutDuration:
+                                        const Duration(milliseconds: 300),
+                                        fadeInDuration:
+                                        const Duration(milliseconds: 300),
+                                      ),
                                   ),
-                                )
+                                ),
+                                    )
                                     : Column(
                                   children: <Widget>[
                                     GestureDetector(
@@ -1272,7 +1309,8 @@ class _UserScreenState extends State<UserScreen> {
       //  'colorGreen': colorGreen,
       'photoUrl': avatarUrl,
       //'photoUrl': photoUrl,
-      'downloadUrl': _uploadedFileURL
+      'downloadUrl': _uploadedFileURL,
+
     });
     _clearImage();
   }
@@ -1490,6 +1528,46 @@ class _UserScreenState extends State<UserScreen> {
       });
     }
   }
+  static Future<void> callback() async {
+
+
+    FlutterRingtonePlayer.playNotification(volume: 1.0,looping: false, asAlarm: true);
+    print('alarm!');
+
+    // This will be null if we're running in the background.
+    uiSendPort ??= IsolateNameServer.lookupPortByName(isolateName);
+    uiSendPort?.send(null);
+  }
+
+  void _setAlarmManager(String itemID)async {
+
+    await AndroidAlarmManager.oneShotAt(_dateTime,
+      //const Duration(seconds: 5),
+      // Ensure we have a unique alarm ID.
+      Random().nextInt(pow(2, 31)),
+      callback,
+      exact: true,
+      wakeup: true,
+      alarmClock: true,
+
+    );
+    Firestore.instance.collection('messages').document(itemID).updateData({'alarmColor': 1});
+
+  }
+
+  void _setAlarmColor()async {
+
+  }
+
+
+
+
+
+
+
+
+
+  
 }
 
 class PrivateChat extends StatefulWidget {
