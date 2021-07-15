@@ -283,7 +283,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         source: ImageSource.gallery,
         maxHeight: 1080,
         maxWidth: 1920,
-        imageQuality: 40)
+        imageQuality: 70)
         .then((image) {
       setState(() {
         _image = image;
@@ -1404,7 +1404,7 @@ class _UserScreenState extends State<UserScreen> {
         source: ImageSource.gallery,
         maxHeight: 1080,
         maxWidth: 1920,
-        imageQuality: 40)
+        imageQuality: 70)
         .then((image) {
       setState(() {
         _image = image;
@@ -1447,7 +1447,7 @@ class _UserScreenState extends State<UserScreen> {
         source: ImageSource.gallery,
         maxHeight: 1080,
         maxWidth: 1920,
-        imageQuality: 40)
+        imageQuality: 70)
         .then((image) {
       setState(() {
         _image = image;
@@ -1531,7 +1531,7 @@ class _UserScreenState extends State<UserScreen> {
   static Future<void> callback() async {
 
 
-    FlutterRingtonePlayer.playNotification(volume: 1.0,looping: false, asAlarm: true);
+    FlutterRingtonePlayer.playNotification(volume: 1.0,looping: true, asAlarm: true);
     print('alarm!');
 
     // This will be null if we're running in the background.
@@ -1555,9 +1555,6 @@ class _UserScreenState extends State<UserScreen> {
 
   }
 
-  void _setAlarmColor()async {
-
-  }
 
 
 
@@ -1873,7 +1870,7 @@ class _PrivateChatState extends State<PrivateChat> {
                                 ),
                                 child: downloadUrl == ""
                                     ? ListTile(
-                                  title: Text(message),
+                                  title: SelectableText(message),
                                   subtitle: Text(userFormatted),
                                   trailing: Text(timestamp),
                                   leading: ClipRRect(
@@ -2264,7 +2261,7 @@ class _PrivateChatState extends State<PrivateChat> {
         source: ImageSource.gallery,
         maxHeight: 1080,
         maxWidth: 1920,
-        imageQuality: 40)
+        imageQuality: 70)
         .then((image) {
       setState(() {
         _image = image;
