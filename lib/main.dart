@@ -600,7 +600,7 @@ class _UserScreenState extends State<UserScreen> {
   void initState() {
     super.initState();
     AndroidAlarmManager.initialize();
-   
+
 
 
 
@@ -1333,7 +1333,12 @@ class _UserScreenState extends State<UserScreen> {
       setState(() {
         currentUser = fbuser.email;
       });
+    }else{
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     }
+
+
+
     // String user = preferences.getString('user').toString();
     //  setState(() {
     //    currentUser = user;
@@ -1564,7 +1569,7 @@ class _UserScreenState extends State<UserScreen> {
 
 
 
-  
+
 }
 
 class PrivateChat extends StatefulWidget {
@@ -1577,11 +1582,16 @@ class PrivateChat extends StatefulWidget {
 class _PrivateChatState extends State<PrivateChat> {
   _PrivateChatState(this.userClickedInUserScreen);
 
+  static SendPort uiSendPort;
+
   String userClickedInUserScreen;
   final databaseReference = Firestore.instance;
   String currentUser = 'null';
   String user2 = 'null';
   int _limit;
+  DateTime _dateTime;
+  int _alarmColor;
+
 
   final myController = TextEditingController();
   final FirebaseMessaging _fcm = FirebaseMessaging();
@@ -1603,6 +1613,7 @@ class _PrivateChatState extends State<PrivateChat> {
     super.initState();
     _limit = 30;
     _scrollController.addListener(_scrollListener);
+    AndroidAlarmManager.initialize();
 
     _checkUser();
     _removeNewMessage();
@@ -1823,13 +1834,14 @@ class _PrivateChatState extends State<PrivateChat> {
                           snapshot.data.documents[index]['user'].toString();
                           String userFormatted =
                           user.substring(0, user.indexOf('@'));
-                          final itemID =
+                          final itemID2 =
                               snapshot.data.documents[index].documentID;
                           final list = snapshot.data.documents;
                           final String photoUrl =
                           snapshot.data.documents[index]['photoUrl'];
                           final String downloadUrl =
                           snapshot.data.documents[index]['downloadUrl'];
+                          final int color = snapshot.data.documents[index]['alarmColor'];
                           // final int colorBlue = snapshot
                           //    .data.documents[reversedIndex]['colorBlue'];
                           // final int colorRed = snapshot
@@ -1840,7 +1852,7 @@ class _PrivateChatState extends State<PrivateChat> {
                             onDismissed: (direction) {
                               if (user == currentUser) {
                                 setState(() {
-                                  _itemID = itemID;
+                                  _itemID = itemID2;
                                 });
                                 // removeFromDb(itemID);
                                 showAlertDialog(context);
@@ -1864,32 +1876,45 @@ class _PrivateChatState extends State<PrivateChat> {
                             child: Card(
                                 elevation: 5,
                                 margin: EdgeInsets.all(6),
-                                color: Colors.white,
+                                color:  color==null?Colors.white:Colors.red,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25.0),
                                 ),
                                 child: downloadUrl == ""
-                                    ? ListTile(
-                                  title: SelectableText(message),
-                                  subtitle: Text(userFormatted),
-                                  trailing: Text(timestamp),
-                                  leading: ClipRRect(
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(100.0)),
-                                    child: CachedNetworkImage(
-                                      height: 50,
-                                      width: 50,
-                                      fit: BoxFit.cover,
-                                      imageUrl: photoUrl,
-                                      placeholder: (context, url) =>
-                                          CircularProgressIndicator(),
-                                      fadeOutDuration:
-                                      const Duration(milliseconds: 300),
-                                      fadeInDuration:
-                                      const Duration(milliseconds: 300),
-                                    ),
-                                  ),
-                                )
+                                    ?  GestureDetector(
+                                onLongPress: (){DatePicker.showDateTimePicker(context, showTitleActions: true, onChanged: (date) {
+                          print('change $date in time zone ' + date.timeZoneOffset.inHours.toString());
+                          }, onConfirm: (date) {
+                          setState(() {
+                          _dateTime=date;
+                          _alarmColor=1;
+
+                          });
+                          _setAlarmManager(itemID2,userClickedInUserScreen);
+
+                          }, currentTime: DateTime.now(), locale: LocaleType.en);},
+                            child: ListTile(
+                              title: SelectableText(message),
+                              subtitle: Text(userFormatted),
+                              trailing: Text(timestamp),
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(100.0)),
+                                child: CachedNetworkImage(
+                                  height: 50,
+                                  width: 50,
+                                  fit: BoxFit.cover,
+                                  imageUrl: photoUrl,
+                                  placeholder: (context, url) =>
+                                      CircularProgressIndicator(),
+                                  fadeOutDuration:
+                                  const Duration(milliseconds: 300),
+                                  fadeInDuration:
+                                  const Duration(milliseconds: 300),
+                                ),
+                              ),
+                            ),
+                          )
                                     : Column(
                                   children: <Widget>[
                                     GestureDetector(
@@ -2116,7 +2141,7 @@ class _PrivateChatState extends State<PrivateChat> {
     });
   }
 
-  void removeFromDb(itemID) async {
+  void removeFromDb(itemID2) async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     //String user2 = ModalRoute.of(context).settings.arguments;
     // String user2 = preferences.getString('user2');
@@ -2126,7 +2151,7 @@ class _PrivateChatState extends State<PrivateChat> {
         .collection(currentUser)
         .document(user2)
         .collection('messages')
-        .document(itemID)
+        .document(itemID2)
         .delete();
     await databaseReference
         .collection('privateChats')
@@ -2134,7 +2159,7 @@ class _PrivateChatState extends State<PrivateChat> {
         .collection(user2)
         .document(currentUser)
         .collection('messages')
-        .document(itemID)
+        .document(itemID2)
         .delete();
   }
 
@@ -2267,6 +2292,33 @@ class _PrivateChatState extends State<PrivateChat> {
         _image = image;
       });
     });
+  }
+  void _setAlarmManager(String itemID2, String userClickedInUserScreen)async {
+
+    await AndroidAlarmManager.oneShotAt(_dateTime,
+      //const Duration(seconds: 5),
+      // Ensure we have a unique alarm ID.
+      Random().nextInt(pow(2, 31)),
+      callback,
+      exact: true,
+      wakeup: true,
+      alarmClock: true,
+
+
+
+    );
+    Firestore.instance.collection('privateChats').document('users').collection(currentUser).document(userClickedInUserScreen).collection('messages').document(itemID2).updateData({'alarmColor': 1});
+print(userClickedInUserScreen);
+  }
+  static Future<void> callback() async {
+
+
+    FlutterRingtonePlayer.playNotification(volume: 1.0,looping: false, asAlarm: true);
+    print('alarm!');
+
+    // This will be null if we're running in the background.
+    uiSendPort ??= IsolateNameServer.lookupPortByName(isolateName);
+    uiSendPort?.send(null);
   }
 
   void _removeBool() async {
